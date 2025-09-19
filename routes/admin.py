@@ -53,8 +53,8 @@ def toggle_user_status(user_id):
         user = cursor.fetchone()
 
         if user:
-            current_app.logger.info(f"User found with status: {user[0]}")
-            new_status = 'inactivo' if user[0] == 'activo' else 'activo'
+            current_app.logger.info(f"User found with id {user_id} and status: {user['estusu']}")
+            new_status = 'inactivo' if user['estusu'] == 'activo' else 'activo'
             cursor.execute("UPDATE usuarios SET estusu = %s WHERE idusu = %s", (new_status, user_id))
             current_app.db.commit()
             flash(f"El estado del usuario ha sido cambiado a {new_status}.", "success")

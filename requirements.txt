@@ -3,3 +3,4 @@ Flask-MySQLdb
 Flask-Bcrypt
 Flask-Session
 python-dotenv
+Flask-WTF
