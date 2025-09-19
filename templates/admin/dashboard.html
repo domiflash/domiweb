@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-center">Gestión de Usuarios</h1>
+
+<div class="flex justify-center items-center mt-6">
+    <div class="w-11/12 lg:w-3/4">
+        <table class="table-auto w-full border border-gray-300 shadow-lg rounded-lg">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">ID</th>
+                    <th class="px-4 py-2">Nombre</th>
+                    <th class="px-4 py-2">Correo</th>
+                    <th class="px-4 py-2">Dirección</th>
+                    <th class="px-4 py-2">Rol</th>
+                    <th class="px-4 py-2">Estado</th>
+                    <th class="px-4 py-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="odd:bg-gray-100 even:bg-white hover:bg-gray-200">
+                    <td class="border px-4 py-2 text-center">{{ user.idusu }}</td>
+                    <td class="border px-4 py-2">{{ user.nomusu }}</td>
+                    <td class="border px-4 py-2">{{ user.corusu }}</td>
+                    <td class="border px-4 py-2">{{ user.dirusu }}</td>
+                    <td class="border px-4 py-2 text-center">{{ user.rolusu }}</td>
+                    <td class="border px-4 py-2 text-center">
+                        <span class="px-2 py-1 rounded-full text-white {{ 'bg-green-500' if user.estusu == 'activo' else 'bg-red-500' }}">
+                            {{ user.estusu|capitalize }}
+                        </span>
+                    </td>
+                    <td class="border px-4 py-2 text-right">
+                        <div class="flex flex-col space-y-2 items-end">
+                            <form action="{{ url_for('admin.update_user', user_id=user.idusu) }}" method="post" class="inline-block">
+                                <input type="text" name="nomusu" value="{{ user.nomusu }}" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
+                                <input type="email" name="corusu" value="{{ user.corusu }}" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
+                                <input type="text" name="dirusu" value="{{ user.dirusu }}" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
+                                <select name="rolusu" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
+                                    <option value="cliente" {% if user.rolusu == 'cliente' %}selected{% endif %}>Cliente</option>
+                                    <option value="restaurante" {% if user.rolusu == 'restaurante' %}selected{% endif %}>Restaurante</option>
+                                    <option value="repartidor" {% if user.rolusu == 'repartidor' %}selected{% endif %}>Repartidor</option>
+                                    <option value="administrador" {% if user.rolusu == 'administrador' %}selected{% endif %}>Administrador</option>
+                                </select>
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" type="submit">Actualizar</button>
+                            </form>
+                            <form action="{{ url_for('admin.toggle_user_status', user_id=user.idusu) }}" method="post" class="inline-block">
+                                <button class="{{ 'bg-red-500 hover:bg-red-600' if user.estusu == 'activo' else 'bg-green-500 hover:bg-green-600' }} text-white px-3 py-1 rounded" type="submit">
+                                    {{ 'Desactivar' if user.estusu == 'activo' else 'Activar' }}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

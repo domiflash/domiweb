@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 import MySQLdb.cursors
 from werkzeug.security import check_password_hash, generate_password_hash
+from utils.auth_helpers import login_required
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -38,7 +39,7 @@ def login():
         password = request.form["password"]
 
         cursor = current_app.db.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE corusu=%s AND estusu=1", (email,))
+        cursor.execute("SELECT * FROM usuarios WHERE corusu=%s AND estusu='activo'", (email,))
         user = cursor.fetchone()
         cursor.close()
 
@@ -56,7 +57,7 @@ def login():
                 return redirect(url_for("restaurante.test"))
             elif user["rolusu"] == "repartidor":
                 return redirect(url_for("repartidor.test"))
-            elif user["rolusu"] == "admin":
+            elif user["rolusu"] == "administrador":
                 return redirect(url_for("admin.test"))
         else:
             flash("Correo o contraseña incorrectos", "danger")
@@ -65,6 +66,7 @@ def login():
 
 
 @auth_bp.route("/logout")
+@login_required
 def logout():
     session.clear()
     flash("Sesión cerrada correctamente", "info")
