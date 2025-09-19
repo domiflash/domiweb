@@ -7,7 +7,7 @@ from routes.repartidor import repartidor_bp
 from routes.admin import admin_bp
 import MySQLdb
 import MySQLdb.cursors
-
+from flask import session
 
 def create_app():
     app = Flask(__name__)
