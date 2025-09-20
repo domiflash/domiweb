@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<title>Detalle Pedido</title>
+</head>
+<body>
+	<h1>Detalle del Pedido #{{ pedido.idped }}</h1>
+
+	<p><strong>Cliente:</strong> {{ pedido.cliente.nombre }}</p>
+	<p><strong>Dirección:</strong> {{ pedido.cliente.direccion }}</p>
+	<p><strong>Estado:</strong> {{ pedido.estado }}</p>
+
+	<h2>Productos</h2>
+	<table border="1">
+		<thead>
+			<tr>
+				<th>Producto</th>
+				<th>Cantidad</th>
+				<th>Precio Unitario</th>
+				<th>Subtotal</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for prod in pedido.productos %}
+			<tr>
+				<td>{{ prod.nombre }}</td>
+				<td>{{ prod.cantidad }}</td>
+				<td>{{ prod.precio }}</td>
+				<td>{{ prod.precio * prod.cantidad }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<p><strong>Total:</strong> {{ pedido.total }}</p>
+
+	<h2>Actualizar Estado</h2>
+	<form action="/restaurante/pedidos/{{ pedido.idped }}/estado" method="post">
+		<select name="estado">
+			<option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+			<option value="en preparación" {% if pedido.estado == 'en preparación' %}selected{% endif %}>En preparación</option>
+			<option value="listo para entregar" {% if pedido.estado == 'listo para entregar' %}selected{% endif %}>Listo para entregar</option>
+			<option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+		</select>
+		<button type="submit">Actualizar</button>
+	</form>
+</body>
+</html>

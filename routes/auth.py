@@ -19,18 +19,36 @@ def register():
 
         try:
             cursor = current_app.db.cursor()
+
+            # 👉 Registrar usuario con SP
             cursor.callproc("registrar_usuario", (nombre, email, hashed_password, direccion, rol))
             current_app.db.commit()
+
+            # ✅ Obtener el id del usuario recién creado
+            cursor.execute("SELECT LAST_INSERT_ID() AS idusu;")
+            nuevo_usuario = cursor.fetchone()
+            idusu = nuevo_usuario["idusu"]
+
+            # 👉 Si es restaurante, creamos su registro en la tabla restaurantes
+            if rol == "restaurante":
+                cursor.execute(
+                    "INSERT INTO restaurantes (idusu, nomres, desres, dirres, telres) VALUES (%s, %s, %s, %s, %s)",
+                    (idusu, nombre, "Mi restaurante", direccion, "0000000000")
+                )
+                current_app.db.commit()
+
             cursor.close()
 
             flash("Usuario registrado exitosamente 🚀", "success")
             return redirect(url_for("auth.login"))
+
         except Exception as e:
             import traceback
             print("❌ Error al registrar:", str(e))
             flash("Error al registrar: " + str(e), "danger")
 
     return render_template("auth/register.html")
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
