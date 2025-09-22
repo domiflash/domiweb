@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, current_app
-from utils.auth_helpers import login_required
+from utils.auth_helpers import login_required, role_required
 
 restaurante_bp = Blueprint("restaurante", __name__)
 
@@ -8,21 +8,25 @@ restaurante_bp = Blueprint("restaurante", __name__)
 # ----------------------------
 @restaurante_bp.route("/productos", methods=["GET"])
 @login_required
+@role_required("restaurante")
 def listar_productos():
     cursor = current_app.db.cursor()
-    cursor.execute("SELECT idpro, nompro, despro, prepro, stopro FROM productos")
+    cursor.execute("SELECT p.idpro, p.nompro, p.despro, p.prepro, p.stopro, c.tipcat FROM productos p JOIN categorias c ON p.idcat = c.idcat")
     productos = cursor.fetchall()
-    return render_template("restaurante/productos.html", productos=productos)
+    cursor.execute("SELECT idcat, tipcat FROM categorias")
+    categorias = cursor.fetchall()
+    return render_template("restaurante/productos.html", productos=productos, categorias=categorias)
 
 @restaurante_bp.route("/productos", methods=["POST"])
 @login_required
+@role_required("restaurante")
 def crear_producto():
     nompro = request.form["nompro"]
     despro = request.form.get("despro")
     prepro = request.form["prepro"]
     stopro = request.form["stopro"]
+    idcat = request.form["idcat"]
     idres = 1  # ⚠️ Temporal: debería salir del restaurante logueado
-    idcat = 1  # ⚠️ Temporal: categoría por defecto
 
     cursor = current_app.db.cursor()
     cursor.execute(
@@ -32,11 +36,47 @@ def crear_producto():
     current_app.db.commit()
     return redirect(url_for("restaurante.listar_productos"))
 
+@restaurante_bp.route("/productos/<int:idpro>/editar", methods=["GET", "POST"])
+@login_required
+@role_required("restaurante")
+def editar_producto(idpro):
+    cursor = current_app.db.cursor()
+
+    if request.method == "POST":
+        nompro = request.form["nompro"]
+        despro = request.form.get("despro")
+        prepro = request.form["prepro"]
+        stopro = request.form["stopro"]
+        idcat = request.form["idcat"]
+
+        cursor.execute(
+            "UPDATE productos SET nompro = %s, despro = %s, prepro = %s, stopro = %s, idcat = %s WHERE idpro = %s",
+            (nompro, despro, prepro, stopro, idcat, idpro)
+        )
+        current_app.db.commit()
+        return redirect(url_for("restaurante.listar_productos"))
+
+    cursor.execute("SELECT * FROM productos WHERE idpro = %s", (idpro,))
+    producto = cursor.fetchone()
+    cursor.execute("SELECT idcat, nomcat FROM categorias")
+    categorias = cursor.fetchall()
+    return render_template("restaurante/editar_producto.html", producto=producto, categorias=categorias)
+
+@restaurante_bp.route("/productos/<int:idpro>/eliminar", methods=["POST"])
+@login_required
+@role_required("restaurante")
+def eliminar_producto(idpro):
+    cursor = current_app.db.cursor()
+    cursor.execute("DELETE FROM productos WHERE idpro = %s", (idpro,))
+    current_app.db.commit()
+    return redirect(url_for("restaurante.listar_productos"))
+
 # ----------------------------
 # PEDIDOS
 # ----------------------------
 @restaurante_bp.route("/pedidos", methods=["GET"])
 @login_required
+@role_required("restaurante")
 def listar_pedidos():
     """Lista todos los pedidos del restaurante actual"""
     idres = 1  # ⚠️ Temporal: debería obtenerse del restaurante logueado
@@ -57,6 +97,7 @@ def listar_pedidos():
 
 @restaurante_bp.route("/pedidos/<int:idped>", methods=["GET"])
 @login_required
+@role_required("restaurante")
 def detalle_pedido(idped):
     """Detalle de un pedido con productos"""
     cursor = current_app.db.cursor()
@@ -90,6 +131,7 @@ def detalle_pedido(idped):
 
 @restaurante_bp.route("/pedidos/<int:idped>/estado", methods=["POST"])
 @login_required
+@role_required("restaurante")
 def cambiar_estado_pedido(idped):
     """Actualizar estado de un pedido"""
     nuevo_estado = request.form["estado"]

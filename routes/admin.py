@@ -69,3 +69,29 @@ def toggle_user_status(user_id):
         cursor.close()
 
     return redirect(url_for('admin.list_users'))
+
+@admin_bp.route("/categories", methods=["GET"])
+@role_required("administrador")
+def list_categories():
+    cursor = current_app.db.cursor()
+    cursor.execute("SELECT idcat, tipcat FROM categorias")
+    categories = cursor.fetchall()
+    return render_template("admin/categories.html", categories=categories)
+
+@admin_bp.route("/categories", methods=["POST"])
+@role_required("administrador")
+def add_category():
+    tipcat = request.form["tipcat"]
+
+    cursor = current_app.db.cursor()
+    try:
+        cursor.execute("INSERT INTO categorias (tipcat) VALUES (%s)", (tipcat,))
+        current_app.db.commit()
+        flash("Categoría agregada correctamente", "success")
+    except Exception as e:
+        current_app.db.rollback()
+        flash("Error al agregar la categoría: " + str(e), "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("admin.list_categories"))

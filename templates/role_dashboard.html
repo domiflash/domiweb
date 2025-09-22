@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-center">Panel de Actividades</h1>
+
+<div class="flex justify-center items-center mt-6">
+    <div class="w-11/12 lg:w-3/4">
+        <ul class="list-disc pl-5">
+            {% if rol == 'administrador' %}
+            <li><a href="{{ url_for('admin.list_users') }}" class="text-blue-500 hover:underline">Gestión de Usuarios</a></li>
+            <li><a href="{{ url_for('admin.list_categories') }}" class="text-blue-500 hover:underline">Gestión de Categorías</a></li>
+            {% elif rol == 'cliente' %}
+            <li><a href="{{ url_for('cliente.menu') }}" class="text-blue-500 hover:underline">Ver Menú</a></li>
+            {% elif rol == 'restaurante' %}
+            <li><a href="{{ url_for('restaurante.listar_productos') }}" class="text-blue-500 hover:underline">Gestión de Productos</a></li>
+            <li><a href="{{ url_for('restaurante.listar_pedidos') }}" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
+            {% elif rol == 'repartidor' %}
+            <li><a href="{{ url_for('repartidor.pedidos') }}" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

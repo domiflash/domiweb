@@ -13,7 +13,7 @@ def register():
         email = request.form["email"]
         password = request.form["password"]
         direccion = request.form["direccion"]
-        rol = request.form["rol"]
+        rol = request.form.get("rol", "cliente")  # Default role is 'cliente'
 
         hashed_password = generate_password_hash(password)
 
@@ -68,19 +68,23 @@ def login():
     
             flash(f"Bienvenido, {user['nomusu']} 👋", "success")
 
-            # Redirigir según rol
-            if user["rolusu"] == "cliente":
-                return redirect(url_for("cliente.test"))
-            elif user["rolusu"] == "restaurante":
-                return redirect(url_for("restaurante.test"))
-            elif user["rolusu"] == "repartidor":
-                return redirect(url_for("repartidor.test"))
-            elif user["rolusu"] == "administrador":
-                return redirect(url_for("admin.test"))
+            # Redirigir a role_dashboard para todos los roles
+            return redirect(url_for("auth.role_dashboard"))
         else:
             flash("Correo o contraseña incorrectos", "danger")
 
     return render_template("auth/login.html")
+
+
+@auth_bp.route("/role_dashboard")
+@login_required
+def role_dashboard():
+    rol = session.get("rol")
+    if not rol:
+        flash("Rol no reconocido", "danger")
+        return redirect(url_for("auth.login"))
+
+    return render_template("role_dashboard.html", rol=rol)
 
 
 @auth_bp.route("/logout")

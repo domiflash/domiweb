@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Menú del Cliente{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-center">Menú de Productos</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% for producto in productos %}
+    <div class="border rounded-lg shadow-lg p-4">
+        <h2 class="text-xl font-bold">{{ producto.nompro }}</h2>
+        <p class="text-gray-600">{{ producto.despro }}</p>
+        <p class="text-green-500 font-bold">${{ producto.prepro }}</p>
+        <form action="{{ url_for('cliente.agregar_al_carrito', producto_id=producto.idpro) }}" method="post">
+            <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Añadir al Carrito</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

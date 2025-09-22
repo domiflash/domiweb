@@ -1,4 +1,4 @@
-from flask import Flask, session, has_request_context
+from flask import Flask, session, has_request_context, render_template
 from config import Config
 from routes.auth import auth_bp
 from routes.cliente import cliente_bp
@@ -48,9 +48,10 @@ def create_app():
         else:
             app.logger.warning("Attempted to clear session outside of request context.")
 
+    @app.route("/index")
     @app.route("/")
     def index():
-        return "Bienvenido a DomiFlash 🚀"
+        return render_template("index.html")
 
     return app
 

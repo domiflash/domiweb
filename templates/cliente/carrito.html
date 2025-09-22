@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-center">Carrito de Compras</h1>
+
+{% if carrito %}
+<table class="table-auto w-full border border-gray-300">
+    <thead>
+        <tr>
+            <th class="px-4 py-2">Producto</th>
+            <th class="px-4 py-2">Precio</th>
+            <th class="px-4 py-2">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in carrito %}
+        <tr>
+            <td class="border px-4 py-2">{{ producto.nompro }}</td>
+            <td class="border px-4 py-2">${{ producto.prepro }}</td>
+            <td class="border px-4 py-2">
+                <form action="{{ url_for('cliente.eliminar_del_carrito', producto_id=producto.idpro) }}" method="post">
+                    <button class="bg-red-500 text-white px-4 py-2 rounded">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form action="{{ url_for('cliente.finalizar_compra') }}" method="post">
+    <button class="bg-green-500 text-white px-4 py-2 rounded mt-4">Finalizar Compra</button>
+</form>
+{% else %}
+<p class="text-center text-gray-600">Tu carrito está vacío.</p>
+{% endif %}
+
+{% endblock %}

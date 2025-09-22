@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Página de Inicio{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Bienvenido a DomiFlash</h1>
+<p class="mb-4">Selecciona una de las siguientes opciones para navegar:</p>
+
+<ul class="list-disc pl-6 space-y-2">
+    <li><a href="/auth/login" class="text-blue-500 hover:underline">Iniciar Sesión</a></li>
+    <li><a href="/auth/register" class="text-blue-500 hover:underline">Registrarse</a></li>
+    <li><a href="/auth/logout" class="text-blue-500 hover:underline">Cerrar Sesion</a></li>
+    <li><a href="/admin/users" class="text-blue-500 hover:underline">Gestión de Usuarios</a></li>
+    <li><a href="/admin/categories" class="text-blue-500 hover:underline">Gestión de Categorías</a></li>
+    <li><a href="/cliente/menu" class="text-blue-500 hover:underline">Menú del Cliente</a></li>
+    <li><a href="/restaurante/productos" class="text-blue-500 hover:underline">Gestión de Productos</a></li>
+    <li><a href="/restaurante/pedidos" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
+</ul>
+{% endblock %}

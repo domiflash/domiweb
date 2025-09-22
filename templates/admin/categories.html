@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Categorías{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Gestión de Categorías</h1>
+
+<table class="table-auto w-full border border-gray-300 shadow-lg rounded-lg mb-6">
+    <thead class="bg-gray-800 text-white">
+        <tr>
+            <th class="px-4 py-2">ID</th>
+            <th class="px-4 py-2">Categoría</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for category in categories %}
+        <tr class="odd:bg-gray-100 even:bg-white hover:bg-gray-200">
+            <td class="border px-4 py-2 text-center">{{ category.idcat }}</td>
+            <td class="border px-4 py-2">{{ category.tipcat }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="text-xl font-bold mb-4">Agregar Nueva Categoría</h2>
+<form action="/admin/categories" method="post" class="space-y-4">
+    <input type="text" name="tipcat" placeholder="Nombre de la Categoría" class="w-full p-2 border rounded" required>
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Agregar</button>
+</form>
+{% endblock %}
