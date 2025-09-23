@@ -10,12 +10,15 @@
             <li><a href="{{ url_for('admin.list_users') }}" class="text-blue-500 hover:underline">Gestión de Usuarios</a></li>
             <li><a href="{{ url_for('admin.list_categories') }}" class="text-blue-500 hover:underline">Gestión de Categorías</a></li>
             {% elif rol == 'cliente' %}
-            <li><a href="{{ url_for('cliente.menu') }}" class="text-blue-500 hover:underline">Ver Menú</a></li>
+            <li><a href="{{ url_for('cliente.test') }}" class="text-blue-500 hover:underline">Ver test</a></li>
+            <p>Se esta trabajando en los demas modulos</p>
             {% elif rol == 'restaurante' %}
             <li><a href="{{ url_for('restaurante.listar_productos') }}" class="text-blue-500 hover:underline">Gestión de Productos</a></li>
             <li><a href="{{ url_for('restaurante.listar_pedidos') }}" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
+            <li><a href="{{ url_for('restaurante.perfil') }}" class="text-blue-500 hover:underline">Gestion Perfil</a></li>
             {% elif rol == 'repartidor' %}
-            <li><a href="{{ url_for('repartidor.pedidos') }}" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
+            <li><a href="{{ url_for('repartidor.test') }}" class="text-blue-500 hover:underline">Ver test</a></li>
+            <p>Se esta trabajando en los demas modulos</p>
             {% endif %}
         </ul>
     </div>

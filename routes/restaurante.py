@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, current_app
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, current_app, session, flash
 from utils.auth_helpers import login_required, role_required
 
 restaurante_bp = Blueprint("restaurante", __name__)
@@ -11,7 +11,21 @@ restaurante_bp = Blueprint("restaurante", __name__)
 @role_required("restaurante")
 def listar_productos():
     cursor = current_app.db.cursor()
-    cursor.execute("SELECT p.idpro, p.nompro, p.despro, p.prepro, p.stopro, c.tipcat FROM productos p JOIN categorias c ON p.idcat = c.idcat")
+    usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
+
+    if not usuario_id:
+        return jsonify({"msg": "No se pudo identificar al usuario logueado."}), 403
+
+    cursor.execute(
+        """
+        SELECT p.idpro, p.nompro, p.despro, p.prepro, p.stopro, c.tipcat
+        FROM productos p
+        JOIN categorias c ON p.idcat = c.idcat
+        JOIN restaurantes r ON p.idres = r.idres
+        WHERE r.idusu = %s
+        """,
+        (usuario_id,)
+    )
     productos = cursor.fetchall()
     cursor.execute("SELECT idcat, tipcat FROM categorias")
     categorias = cursor.fetchall()
@@ -79,19 +93,27 @@ def eliminar_producto(idpro):
 @role_required("restaurante")
 def listar_pedidos():
     """Lista todos los pedidos del restaurante actual"""
-    idres = 1  # ⚠️ Temporal: debería obtenerse del restaurante logueado
+    usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
+
+    if not usuario_id:
+        return jsonify({"msg": "No se pudo identificar al usuario logueado."}), 403
+
     cursor = current_app.db.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT p.idped, u.nomusu AS cliente, u.dirusu AS direccion, 
                p.estped, p.fecha_creacion, p.fecha_actualizacion,
                SUM(dp.cantidad * dp.precio_unitario) AS total
         FROM pedidos p
         JOIN usuarios u ON p.idusu = u.idusu
         JOIN detalle_pedidos dp ON p.idped = dp.idped
-        WHERE p.idres = %s
+        JOIN restaurantes r ON p.idres = r.idres
+        WHERE r.idusu = %s
         GROUP BY p.idped, u.nomusu, u.dirusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
         ORDER BY p.fecha_creacion DESC
-    """, (idres,))
+        """,
+        (usuario_id,)
+    )
     pedidos = cursor.fetchall()
     return render_template("restaurante/pedidos.html", pedidos=pedidos)
 
@@ -141,3 +163,39 @@ def cambiar_estado_pedido(idped):
     current_app.db.commit()
 
     return redirect(url_for("restaurante.detalle_pedido", idped=idped))
+
+# ----------------------------
+# PERFIL
+# ----------------------------
+@restaurante_bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+@role_required("restaurante")
+def perfil():
+    """Permite al restaurante modificar su información."""
+    cursor = current_app.db.cursor()
+    usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
+
+    if not usuario_id:
+        return jsonify({"msg": "No se pudo identificar al usuario logueado."}), 403
+
+    if request.method == "POST":
+        nomres = request.form["nomres"]
+        desres = request.form.get("desres")
+        dirres = request.form["dirres"]
+        telres = request.form["telres"]
+
+        cursor.execute(
+            """
+            UPDATE restaurantes
+            SET nomres = %s, desres = %s, dirres = %s, telres = %s
+            WHERE idusu = %s
+            """,
+            (nomres, desres, dirres, telres, usuario_id)
+        )
+        current_app.db.commit()
+        flash("Perfil actualizado exitosamente.", "success")
+        return redirect(url_for("restaurante.perfil"))
+
+    cursor.execute("SELECT nomres, desres, dirres, telres FROM restaurantes WHERE idusu = %s", (usuario_id,))
+    restaurante = cursor.fetchone()
+    return render_template("restaurante/perfil.html", restaurante=restaurante)

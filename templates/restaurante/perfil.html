@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-2xl font-bold text-center mb-6">Perfil del Restaurante</h1>
+    <form method="POST" action="{{ url_for('restaurante.perfil') }}" class="space-y-4">
+        <div class="">
+            <label for="nomres" class="block text-sm font-medium text-gray-700">Nombre del Restaurante</label>
+            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" id="nomres" name="nomres" value="{{ restaurante.nomres }}" required>
+        </div>
+        <div class="">
+            <label for="desres" class="block text-sm font-medium text-gray-700">Descripción</label>
+            <textarea class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" id="desres" name="desres">{{ restaurante.desres }}</textarea>
+        </div>
+        <div class="">
+            <label for="dirres" class="block text-sm font-medium text-gray-700">Dirección</label>
+            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" id="dirres" name="dirres" value="{{ restaurante.dirres }}" required>
+        </div>
+        <div class="">
+            <label for="telres" class="block text-sm font-medium text-gray-700">Teléfono</label>
+            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" id="telres" name="telres" value="{{ restaurante.telres }}" required>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Actualizar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -22,37 +22,102 @@ def menu():
 @cliente_bp.route("/carrito", methods=["GET"])
 @login_required
 @role_required("cliente")
-def carrito():
-    carrito = session.get("carrito", [])
+def mostrar_carrito():
+    """Muestra los productos en el carrito del cliente."""
+    user_id = session.get("user_id")
+    cursor = current_app.db.cursor()
+    cursor.execute("""
+        SELECT c.idproducto, p.nompro, p.prepro, c.cantidad
+        FROM carritos c
+        JOIN productos p ON c.idproducto = p.idpro
+        WHERE c.idusuario = %s
+    """, (user_id,))
+    carrito = cursor.fetchall()
     return render_template("cliente/carrito.html", carrito=carrito)
 
-@cliente_bp.route("/carrito/agregar/<int:producto_id>", methods=["POST"])
+@cliente_bp.route("/carrito/agregar", methods=["POST"])
 @login_required
 @role_required("cliente")
-def agregar_al_carrito(producto_id):
+def agregar_al_carrito():
+    """Agrega un producto al carrito."""
+    user_id = session.get("user_id")
+    producto_id = request.form.get("producto_id")
+    cantidad = int(request.form.get("cantidad", 1))
+
     cursor = current_app.db.cursor()
-    cursor.execute("SELECT idpro, nompro, prepro FROM productos WHERE idpro = %s", (producto_id,))
-    producto = cursor.fetchone()
+    # Verificar si el producto ya está en el carrito
+    cursor.execute("""
+        SELECT cantidad FROM carritos WHERE idusuario = %s AND idproducto = %s
+    """, (user_id, producto_id))
+    resultado = cursor.fetchone()
 
-    if producto:
-        carrito = session.get("carrito", [])
-        carrito.append(producto)
-        session["carrito"] = carrito
-        flash("Producto agregado al carrito", "success")
+    if resultado:
+        # Actualizar la cantidad si ya existe
+        nueva_cantidad = resultado[0] + cantidad
+        cursor.execute("""
+            UPDATE carritos SET cantidad = %s WHERE idusuario = %s AND idproducto = %s
+        """, (nueva_cantidad, user_id, producto_id))
     else:
-        flash("Producto no encontrado", "danger")
+        # Insertar un nuevo producto en el carrito
+        cursor.execute("""
+            INSERT INTO carritos (idusuario, idproducto, cantidad)
+            VALUES (%s, %s, %s)
+        """, (user_id, producto_id, cantidad))
 
-    return redirect(url_for("cliente.menu"))
+    current_app.db.commit()
+    return redirect(url_for("cliente.mostrar_carrito"))
 
-@cliente_bp.route("/carrito/eliminar/<int:producto_id>", methods=["POST"])
+
+@cliente_bp.route("/carrito/actualizar", methods=["POST"])
 @login_required
 @role_required("cliente")
-def eliminar_del_carrito(producto_id):
-    carrito = session.get("carrito", [])
-    carrito = [p for p in carrito if p["idpro"] != producto_id]
-    session["carrito"] = carrito
-    flash("Producto eliminado del carrito", "info")
-    return redirect(url_for("cliente.carrito"))
+def actualizar_carrito():
+    """Actualiza la cantidad de un producto en el carrito."""
+    user_id = session.get("user_id")
+    producto_id = request.form.get("producto_id")
+    nueva_cantidad = int(request.form.get("cantidad"))
+
+    if nueva_cantidad <= 0:
+        # Si la cantidad es 0 o menor, eliminar el producto
+        return eliminar_del_carrito(producto_id)
+
+    cursor = current_app.db.cursor()
+    cursor.execute("""
+        UPDATE carritos SET cantidad = %s WHERE idusuario = %s AND idproducto = %s
+    """, (nueva_cantidad, user_id, producto_id))
+    current_app.db.commit()
+    return redirect(url_for("cliente.mostrar_carrito"))
+
+
+@cliente_bp.route("/carrito/eliminar", methods=["POST"])
+@login_required
+@role_required("cliente")
+def eliminar_del_carrito():
+    """Elimina un producto del carrito."""
+    user_id = session.get("user_id")
+    producto_id = request.form.get("producto_id")
+
+    cursor = current_app.db.cursor()
+    cursor.execute("""
+        DELETE FROM carritos WHERE idusuario = %s AND idproducto = %s
+    """, (user_id, producto_id))
+    current_app.db.commit()
+    return redirect(url_for("cliente.mostrar_carrito"))
+
+
+@cliente_bp.route("/carrito/vaciar", methods=["POST"])
+@login_required
+@role_required("cliente")
+def vaciar_carrito():
+    """Vacía el carrito del cliente."""
+    user_id = session.get("user_id")
+
+    cursor = current_app.db.cursor()
+    cursor.execute("""
+        DELETE FROM carritos WHERE idusuario = %s
+    """, (user_id,))
+    current_app.db.commit()
+    return redirect(url_for("cliente.mostrar_carrito"))
 
 # Perfil del Cliente
 @cliente_bp.route("/perfil", methods=["GET", "POST"])

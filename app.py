@@ -1,4 +1,4 @@
-from flask import Flask, session, has_request_context, render_template
+from flask import Flask, render_template
 from config import Config
 from routes.auth import auth_bp
 from routes.cliente import cliente_bp
@@ -7,7 +7,7 @@ from routes.repartidor import repartidor_bp
 from routes.admin import admin_bp
 import MySQLdb
 import MySQLdb.cursors
-import atexit
+from flask_session import Session
 from dotenv import load_dotenv
 import os
 
@@ -33,20 +33,17 @@ def create_app():
         cursorclass=MySQLdb.cursors.DictCursor
     )
 
+    # Configurar Flask-Session para sesiones persistentes
+    app.config['SESSION_TYPE'] = 'filesystem'  # Cambiar a 'redis' si se usa Redis
+    app.config['SESSION_PERMANENT'] = False  # Las sesiones no serán permanentes
+    Session(app)
+
     # Registrar blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(cliente_bp, url_prefix="/cliente")
     app.register_blueprint(restaurante_bp, url_prefix="/restaurante")
     app.register_blueprint(repartidor_bp, url_prefix="/repartidor")
     app.register_blueprint(admin_bp, url_prefix="/admin")
-
-    @app.teardown_appcontext
-    def clear_session_on_shutdown(exception=None):
-        if has_request_context():
-            session.clear()
-            app.logger.info("All sessions cleared on server shutdown.")
-        else:
-            app.logger.warning("Attempted to clear session outside of request context.")
 
     @app.route("/index")
     @app.route("/")
