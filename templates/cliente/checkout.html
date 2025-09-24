@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Finalizar Pedido</h1>
+
+    {% if restaurantes|length > 1 %}
+    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6">
+        <strong>Nota:</strong> Tienes productos de múltiples restaurantes. Debes crear pedidos separados.
+    </div>
+    {% endif %}
+
+    {% for restaurante_id, datos in restaurantes.items() %}
+    <div class="bg-white shadow-lg rounded-lg mb-6 p-6">
+        <h2 class="text-2xl font-bold mb-4">{{ datos.nombre }}</h2>
+        
+        <table class="table-auto w-full border border-gray-300 mb-4">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">Producto</th>
+                    <th class="px-4 py-2">Precio</th>
+                    <th class="px-4 py-2">Cantidad</th>
+                    <th class="px-4 py-2">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in datos.productos %}
+                <tr class="odd:bg-gray-100 even:bg-white">
+                    <td class="border px-4 py-2">{{ producto.nompro }}</td>
+                    <td class="border px-4 py-2 text-center">${{ producto.prepro }}</td>
+                    <td class="border px-4 py-2 text-center">{{ producto.canprocar }}</td>
+                    <td class="border px-4 py-2 text-center">${{ producto.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="bg-gray-200">
+                <tr>
+                    <td colspan="3" class="border px-4 py-2 text-right font-bold">Total:</td>
+                    <td class="border px-4 py-2 text-center font-bold">${{ datos.total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <form action="{{ url_for('cliente.checkout') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="restaurante_id" value="{{ restaurante_id }}">
+            
+            <div>
+                <label for="metodo_pago" class="block text-sm font-medium text-gray-700">Método de Pago:</label>
+                <select name="metodo_pago" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    <option value="">Seleccione método de pago</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="nequi">Nequi</option>
+                    <option value="daviplata">Daviplata</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-between">
+                <a href="{{ url_for('cliente.mostrar_carrito') }}" class="bg-gray-500 text-white px-6 py-3 rounded hover:bg-gray-600">
+                    Volver al Carrito
+                </a>
+                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">
+                    Confirmar Pedido ({{ datos.total }})
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

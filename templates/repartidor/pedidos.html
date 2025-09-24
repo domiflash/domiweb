@@ -3,6 +3,94 @@
 {% block title %}Pedidos del Repartidor{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold">Pedidos del Repartidor</h1>
-<p>Aquí se mostrarán los pedidos asignados al repartidor.</p>
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Gestión de Pedidos - Repartidor</h1>
+    
+    <!-- Pedidos Disponibles -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">Pedidos Disponibles</h2>
+        {% if pedidos_disponibles %}
+        <div class="grid gap-4">
+            {% for pedido in pedidos_disponibles %}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold">Pedido #{{ pedido.idped }}</h3>
+                        <p><strong>Cliente:</strong> {{ pedido.cliente }}</p>
+                        <p><strong>Dirección:</strong> {{ pedido.dirusu }}</p>
+                        <p><strong>Restaurante:</strong> {{ pedido.nomres }}</p>
+                        <p><strong>Total:</strong> ${{ pedido.total }}</p>
+                        <p class="text-sm text-gray-600">{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2 py-1 bg-yellow-500 text-white rounded text-sm">
+                            {{ pedido.estped|title }}
+                        </span>
+                        <form action="{{ url_for('repartidor.tomar_pedido', pedido_id=pedido.idped) }}" method="POST" class="mt-2">
+                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                Tomar Pedido
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-600">No hay pedidos disponibles en este momento.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Mis Pedidos Asignados -->
+    <div>
+        <h2 class="text-2xl font-bold mb-4 text-green-600">Mis Pedidos Asignados</h2>
+        {% if pedidos_asignados %}
+        <div class="grid gap-4">
+            {% for pedido in pedidos_asignados %}
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold">Pedido #{{ pedido.idped }}</h3>
+                        <p><strong>Cliente:</strong> {{ pedido.cliente }}</p>
+                        <p><strong>Dirección:</strong> {{ pedido.dirusu }}</p>
+                        <p><strong>Restaurante:</strong> {{ pedido.nomres }}</p>
+                        <p><strong>Total:</strong> ${{ pedido.total }}</p>
+                        <p class="text-sm text-gray-600">{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2 py-1 rounded text-white text-sm
+                            {% if pedido.estped == 'entregado' %}bg-green-500
+                            {% elif pedido.estped == 'en_camino' %}bg-blue-500
+                            {% elif pedido.estped == 'preparando' %}bg-yellow-500
+                            {% else %}bg-gray-500{% endif %}">
+                            {{ pedido.estped|replace('_', ' ')|title }}
+                        </span>
+                        
+                        {% if pedido.estped not in ['entregado', 'cancelado'] %}
+                        <form action="{{ url_for('repartidor.actualizar_estado', pedido_id=pedido.idped) }}" method="POST" class="mt-2">
+                            <select name="estado" class="block w-full text-sm border rounded px-2 py-1 mb-2">
+                                <option value="">Cambiar estado...</option>
+                                {% if pedido.estped == 'aceptado' %}
+                                <option value="en_camino">En Camino</option>
+                                {% elif pedido.estped == 'preparando' %}
+                                <option value="en_camino">En Camino</option>
+                                {% elif pedido.estped == 'en_camino' %}
+                                <option value="entregado">Entregado</option>
+                                {% endif %}
+                            </select>
+                            <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                Actualizar
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-600">No tienes pedidos asignados.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

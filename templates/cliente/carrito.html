@@ -22,15 +22,15 @@
                     <td class="border px-4 py-2 text-center">${{ item.prepro }}</td>
                     <td class="border px-4 py-2 text-center">
                         <form action="{{ url_for('cliente.actualizar_carrito') }}" method="POST">
-                            <input type="hidden" name="producto_id" value="{{ item.idproducto }}">
-                            <input type="number" name="cantidad" value="{{ item.cantidad }}" class="w-16 text-center border rounded">
+                            <input type="hidden" name="producto_id" value="{{ item.idpro }}">
+                            <input type="number" name="cantidad" value="{{ item.canprocar }}" class="w-16 text-center border rounded">
                             <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded">Actualizar</button>
                         </form>
                     </td>
-                    <td class="border px-4 py-2 text-center">${{ item.prepro * item.cantidad }}</td>
+                    <td class="border px-4 py-2 text-center">${{ item.prepro * item.canprocar }}</td>
                     <td class="border px-4 py-2 text-center">
                         <form action="{{ url_for('cliente.eliminar_del_carrito') }}" method="POST">
-                            <input type="hidden" name="producto_id" value="{{ item.idproducto }}">
+                            <input type="hidden" name="producto_id" value="{{ item.idpro }}">
                             <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
                         </form>
                     </td>
@@ -38,10 +38,15 @@
                 {% endfor %}
             </tbody>
         </table>
-        <div class="mt-4 text-right">
+        <div class="mt-4 flex justify-between">
             <form action="{{ url_for('cliente.vaciar_carrito') }}" method="POST">
                 <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Vaciar Carrito</button>
             </form>
+            {% if carrito %}
+            <a href="{{ url_for('cliente.checkout') }}" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">
+                Proceder al Checkout
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>

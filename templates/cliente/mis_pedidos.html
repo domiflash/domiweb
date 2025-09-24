@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Mis Pedidos</h1>
+
+    {% if pedidos %}
+    <div class="grid gap-6">
+        {% for pedido in pedidos %}
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-xl font-bold">Pedido #{{ pedido.idped }}</h3>
+                    <p class="text-gray-600">{{ pedido.nomres }}</p>
+                    <p class="text-sm text-gray-500">{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-green-600">${{ pedido.total }}</p>
+                    <span class="px-2 py-1 rounded-full text-white text-sm 
+                        {% if pedido.estped == 'entregado' %}bg-green-500
+                        {% elif pedido.estped == 'en_camino' %}bg-blue-500
+                        {% elif pedido.estped == 'preparando' %}bg-yellow-500
+                        {% elif pedido.estped == 'cancelado' %}bg-red-500
+                        {% else %}bg-gray-500{% endif %}">
+                        {{ pedido.estped|title }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="border-t pt-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm"><strong>Método de Pago:</strong> {{ pedido.metodo|title if pedido.metodo else 'No especificado' }}</p>
+                        <p class="text-sm">
+                            <strong>Estado del Pago:</strong> 
+                            <span class="{% if pedido.estado_pago == 'pagado' %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ pedido.estado_pago|title if pedido.estado_pago else 'Pendiente' }}
+                            </span>
+                        </p>
+                    </div>
+                    {% if pedido.estped in ['pendiente', 'aceptado', 'preparando', 'en_camino'] %}
+                    <div class="text-sm">
+                        <span class="text-blue-600">🕒 En proceso...</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <h2 class="text-xl text-gray-600 mb-4">No tienes pedidos aún</h2>
+        <a href="{{ url_for('cliente.menu') }}" class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600">
+            Explorar Menú
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

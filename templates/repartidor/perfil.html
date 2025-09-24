@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-2xl font-bold text-center mb-6">Perfil del Repartidor</h1>
+    <form method="POST" action="{{ url_for('repartidor.perfil') }}" class="space-y-4">
+        <div class="">
+            <label for="nomrep" class="block text-sm font-medium text-gray-700">Nombre del Repartidor</label>
+            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
+                   id="nomrep" name="nomrep" value="{{ repartidor.nomrep if repartidor else '' }}" required>
+        </div>
+        <div class="">
+            <label for="vehrep" class="block text-sm font-medium text-gray-700">Vehículo</label>
+            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
+                   id="vehrep" name="vehrep" value="{{ repartidor.vehrep if repartidor else '' }}" 
+                   placeholder="Ej: Moto Yamaha FZ, Bicicleta, etc." required>
+        </div>
+        <div class="">
+            <label class="block text-sm font-medium text-gray-700">Estado</label>
+            <span class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if repartidor and repartidor.estrep == 'activo' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ repartidor.estrep|title if repartidor else 'Activo' }}
+            </span>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Actualizar Perfil
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
