@@ -40,14 +40,28 @@ def crear_producto():
     prepro = request.form["prepro"]
     stopro = request.form["stopro"]
     idcat = request.form["idcat"]
-    idres = 1  # ⚠️ Temporal: debería salir del restaurante logueado
+    # idres = 1  # ⚠️ Temporal: debería salir del restaurante logueado
 
+
+    # Obtener el idres del restaurante logueado
+    usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
     cursor = current_app.db.cursor()
+    cursor.execute("SELECT idres FROM restaurantes WHERE idusu = %s", (usuario_id,))
+    restaurante = cursor.fetchone()
+
+    if not restaurante:
+        flash("No se encontró un restaurante asociado al usuario logueado.", "danger")
+        return redirect(url_for("restaurante.listar_productos"))
+
+    idres = restaurante["idres"]  # Obtener el idres del resultado de la consulta
+
+    # Insertar el producto con el idres correcto
     cursor.execute(
         "INSERT INTO productos (idres, idcat, nompro, despro, prepro, stopro) VALUES (%s, %s, %s, %s, %s, %s)",
         (idres, idcat, nompro, despro, prepro, stopro)
     )
     current_app.db.commit()
+    flash("Producto creado exitosamente.", "success")
     return redirect(url_for("restaurante.listar_productos"))
 
 @restaurante_bp.route("/productos/<int:idpro>/editar", methods=["GET", "POST"])
