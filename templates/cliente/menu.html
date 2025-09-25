@@ -3,20 +3,43 @@
 {% block title %}Menú del Cliente{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6 text-center">Menú de Productos</h1>
+<h1 class="text-3xl font-bold mb-6 text-center">Menú de Restaurantes</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {% for producto in productos %}
+<div class="space-y-4">
+    {% for idres, restaurante in restaurantes.items() %}
     <div class="border rounded-lg shadow-lg p-4">
-        <h2 class="text-xl font-bold">{{ producto.nompro }}</h2>
-        <p class="text-gray-600">{{ producto.despro }}</p>
-        <p class="text-green-500 font-bold">${{ producto.prepro }}</p>
-        <form action="{{ url_for('cliente.agregar_al_carrito') }}" method="post">
-            <input type="hidden" name="producto_id" value="{{ producto.idpro }}">
-            <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Añadir al Carrito</button>
-        </form>
+        <h2 class="text-xl font-bold">
+            <button class="text-blue-500 hover:underline" onclick="toggleProductos('{{ idres }}')">
+                {{ restaurante.nombre }}
+            </button>
+        </h2>
+        <div id="productos-{{ idres }}" class="hidden mt-4">
+            {% if restaurante.productos %}
+            <ul class="space-y-2">
+                {% for producto in restaurante.productos %}
+                <li class="border-b pb-2">
+                    <h3 class="font-bold">{{ producto.nompro }}</h3>
+                    <p class="text-gray-600">{{ producto.despro }}</p>
+                    <p class="text-green-500 font-bold">${{ producto.prepro }}</p>
+                    <form action="{{ url_for('cliente.agregar_al_carrito') }}" method="post">
+                        <input type="hidden" name="producto_id" value="{{ producto.idpro }}">
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Añadir al Carrito</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-gray-500">No hay productos disponibles.</p>
+            {% endif %}
+        </div>
     </div>
     {% endfor %}
 </div>
 
+<script>
+function toggleProductos(idres) {
+    const productosDiv = document.getElementById(`productos-${idres}`);
+    productosDiv.classList.toggle('hidden');
+}
+</script>
 {% endblock %}

@@ -177,10 +177,10 @@ def checkout():
                 total = total_result['total'] if total_result else 0
                 
                 # Registrar pago
-                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total))
+                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total_result))
                 current_app.db.commit()
                 
-                flash(f"Pedido #{pedido_id} creado exitosamente por ${total}", "success")
+                flash(f"Pedido #{pedido_id} creado exitosamente por ${total_result}", "success")
                 return redirect(url_for("cliente.mis_pedidos"))
                 
         except Exception as e:
@@ -216,10 +216,10 @@ def checkout():
         restaurantes[item['idres']]['productos'].append(item)
         restaurantes[item['idres']]['total'] += item['subtotal']
         total_general += item['subtotal']
-    
-    return render_template("cliente/checkout.html", 
-                         restaurantes=restaurantes, 
-                         total_general=total_general)
+
+    return render_template("cliente/checkout.html", restaurantes=restaurantes
+                           
+                            , total_general=total_general)
 
 @cliente_bp.route("/mis-pedidos")
 @login_required
