@@ -231,11 +231,11 @@ def checkout():
                 total = total_result['total'] if total_result else 0
                 
                 # Registrar pago
-                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total_result))
+                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total))
                 current_app.db.commit()
                 
-                flash(f"Pedido #{pedido_id} creado exitosamente por ${total_result}", "success")
-                return redirect(url_for("cliente.mis_pedidos"))
+                # Redirigir a página de pago exitoso
+                return redirect(url_for("cliente.pago_exitoso", pedido_id=pedido_id, metodo=metodo_pago, total=total))
                 
         except Exception as e:
             flash(f"Error al procesar pedido: {str(e)}", "danger")
@@ -296,3 +296,37 @@ def mis_pedidos():
     
     pedidos = cursor.fetchall()
     return render_template("cliente/mis_pedidos.html", pedidos=pedidos)
+
+@cliente_bp.route("/pago-exitoso")
+@login_required
+@role_required("cliente")
+def pago_exitoso():
+    """Página de confirmación de pago exitoso."""
+    pedido_id = request.args.get("pedido_id")
+    metodo_pago = request.args.get("metodo", "efectivo")
+    monto = request.args.get("total", "0")
+    
+    return render_template("cliente/pago_exitoso.html", 
+                         pedido_id=pedido_id, 
+                         metodo_pago=metodo_pago, 
+                         monto=monto)
+
+@cliente_bp.route("/actualizar-pago/<int:pedido_id>", methods=["POST"])
+@login_required
+@role_required("cliente")
+def actualizar_pago_simulado(pedido_id):
+    """Simula la actualización del estado del pago."""
+    try:
+        cursor = current_app.db.cursor()
+        
+        # Obtener el ID del pago asociado al pedido
+        cursor.execute("SELECT idpag FROM pagos WHERE idped = %s", (pedido_id,))
+        pago = cursor.fetchone()
+        
+        if pago:
+            cursor.callproc("actualizar_estado_pago", (pago['idpag'], "pagado"))
+            current_app.db.commit()
+        
+        return {"status": "success"}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500

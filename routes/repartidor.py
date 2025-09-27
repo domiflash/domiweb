@@ -8,6 +8,59 @@ repartidor_bp = Blueprint("repartidor", __name__)
 def test():
     return "Ruta de repartidor funcionando 🚀"
 
+@repartidor_bp.route("/dashboard")
+@login_required
+@role_required("repartidor")
+def dashboard():
+    """Dashboard con estadísticas del repartidor."""
+    usuario_id = session.get("usuario_id")
+    cursor = current_app.db.cursor()
+    
+    # Obtener ID del repartidor
+    cursor.execute("SELECT idrep FROM repartidores WHERE idusu = %s", (usuario_id,))
+    repartidor = cursor.fetchone()
+    
+    if not repartidor:
+        return redirect(url_for("repartidor.perfil"))
+    
+    idrep = repartidor['idrep']
+    
+    # Estadísticas del repartidor
+    stats = {}
+    
+    # Total de pedidos entregados
+    cursor.execute("""
+        SELECT COUNT(*) as total_entregados
+        FROM pedidos WHERE idrep = %s AND estped = 'entregado'
+    """, (idrep,))
+    stats['entregados'] = cursor.fetchone()['total_entregados']
+    
+    # Pedidos en proceso
+    cursor.execute("""
+        SELECT COUNT(*) as en_proceso
+        FROM pedidos WHERE idrep = %s AND estped IN ('aceptado', 'preparando', 'en_camino')
+    """, (idrep,))
+    stats['en_proceso'] = cursor.fetchone()['en_proceso']
+    
+    # Total ganado (simulado - 10% del total de pedidos)
+    cursor.execute("""
+        SELECT SUM(dp.cantidad * dp.precio_unitario * 0.1) as total_ganado
+        FROM pedidos p
+        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        WHERE p.idrep = %s AND p.estped = 'entregado'
+    """, (idrep,))
+    result = cursor.fetchone()
+    stats['ganado'] = result['total_ganado'] if result['total_ganado'] else 0
+    
+    # Pedidos de hoy
+    cursor.execute("""
+        SELECT COUNT(*) as hoy
+        FROM pedidos WHERE idrep = %s AND DATE(fecha_creacion) = CURDATE()
+    """, (idrep,))
+    stats['hoy'] = cursor.fetchone()['hoy']
+    
+    return render_template("repartidor/dashboard.html", stats=stats)
+
 @repartidor_bp.route("/pedidos")
 @login_required
 @role_required("repartidor")

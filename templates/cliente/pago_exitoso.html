@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-6 max-w-md">
+    <div class="bg-white shadow-lg rounded-lg p-8 text-center">
+        <div class="mb-6">
+            <div class="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-green-600 mb-2">¡Pago Procesado!</h1>
+            <p class="text-gray-600">Simulación de pago completada exitosamente</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+            <h3 class="font-semibold mb-2">Detalles del Pago</h3>
+            <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                    <span>Pedido:</span>
+                    <span class="font-mono">#{{ pedido_id }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Método:</span>
+                    <span class="capitalize">{{ metodo_pago }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Monto:</span>
+                    <span class="font-bold text-green-600">${{ monto }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Estado:</span>
+                    <span class="text-green-600">Procesando...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="space-y-3">
+            <a href="{{ url_for('cliente.mis_pedidos') }}" 
+               class="block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                Ver Mis Pedidos
+            </a>
+            <a href="{{ url_for('cliente.menu') }}" 
+               class="block bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300">
+                Continuar Comprando
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simular actualización de estado del pago después de 3 segundos
+setTimeout(() => {
+    fetch('/cliente/actualizar-pago/{{ pedido_id }}', { method: 'POST' })
+        .then(() => {
+            const estadoEl = document.querySelector('.text-green-600:last-child');
+            if (estadoEl && estadoEl.textContent === 'Procesando...') {
+                estadoEl.textContent = 'Pagado ✓';
+            }
+        });
+}, 3000);
+</script>
+{% endblock %}

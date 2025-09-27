@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Dashboard Repartidor</h1>
+    
+    <!-- Tarjetas de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Pedidos de Hoy -->
+        <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100">Pedidos Hoy</p>
+                    <p class="text-3xl font-bold">{{ stats.hoy }}</p>
+                </div>
+                <div class="text-blue-200">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- En Proceso -->
+        <div class="bg-yellow-500 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-100">En Proceso</p>
+                    <p class="text-3xl font-bold">{{ stats.en_proceso }}</p>
+                </div>
+                <div class="text-yellow-200">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Entregados -->
+        <div class="bg-green-500 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100">Total Entregados</p>
+                    <p class="text-3xl font-bold">{{ stats.entregados }}</p>
+                </div>
+                <div class="text-green-200">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Ganado -->
+        <div class="bg-purple-500 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100">Total Ganado</p>
+                    <p class="text-3xl font-bold">${{ "%.2f"|format(stats.ganado) }}</p>
+                </div>
+                <div class="text-purple-200">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones Rápidas -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-bold mb-4">Acciones Rápidas</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('repartidor.listar_pedidos') }}" 
+               class="bg-blue-600 text-white p-4 rounded-lg text-center hover:bg-blue-700 transition">
+                <div class="text-2xl mb-2">📦</div>
+                <div class="font-semibold">Gestionar Pedidos</div>
+            </a>
+            <a href="{{ url_for('repartidor.perfil') }}" 
+               class="bg-gray-600 text-white p-4 rounded-lg text-center hover:bg-gray-700 transition">
+                <div class="text-2xl mb-2">👤</div>
+                <div class="font-semibold">Mi Perfil</div>
+            </a>
+            <div class="bg-green-600 text-white p-4 rounded-lg text-center cursor-pointer hover:bg-green-700 transition"
+                 onclick="simularEntrega()">
+                <div class="text-2xl mb-2">✅</div>
+                <div class="font-semibold">Marcar Disponible</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function simularEntrega() {
+    alert('¡Estado actualizado a Disponible! 🚚');
+}
+</script>
+{% endblock %}

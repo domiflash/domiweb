@@ -19,6 +19,7 @@
             <li><a href="{{ url_for('restaurante.listar_pedidos') }}" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
             <li><a href="{{ url_for('restaurante.perfil') }}" class="text-blue-500 hover:underline">Gestion Perfil</a></li>
             {% elif rol == 'repartidor' %}
+            <li><a href="{{ url_for('repartidor.dashboard') }}" class="text-blue-500 hover:underline">Mi Dashboard</a></li>
             <li><a href="{{ url_for('repartidor.listar_pedidos') }}" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
             <li><a href="{{ url_for('repartidor.perfil') }}" class="text-blue-500 hover:underline">Mi Perfil</a></li>
             {% endif %}

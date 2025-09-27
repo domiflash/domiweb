@@ -43,6 +43,30 @@
                         <span class="text-blue-600">🕒 En proceso...</span>
                     </div>
                     {% endif %}
+                    
+                    <!-- Botón para ver detalles -->
+                    <button onclick="toggleDetalle({{ pedido.idped }})" 
+                            class="text-sm text-blue-600 hover:underline mt-2">
+                        Ver detalles
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Panel de detalles (oculto por defecto) -->
+            <div id="detalle-{{ pedido.idped }}" class="hidden border-t pt-4 mt-4">
+                <h4 class="font-semibold mb-2">Detalles del Pedido</h4>
+                <div class="text-sm space-y-1">
+                    <p><strong>ID del Pedido:</strong> #{{ pedido.idped }}</p>
+                    <p><strong>Fecha:</strong> {{ pedido.fecha_creacion.strftime('%d de %B de %Y a las %H:%M') }}</p>
+                    <p><strong>Restaurante:</strong> {{ pedido.nomres }}</p>
+                    <p><strong>Total:</strong> ${{ pedido.total }}</p>
+                    <p><strong>Estado:</strong> <span class="capitalize">{{ pedido.estped|replace('_', ' ') }}</span></p>
+                    <p><strong>Método de Pago:</strong> <span class="capitalize">{{ pedido.metodo if pedido.metodo else 'No especificado' }}</span></p>
+                    <p><strong>Estado del Pago:</strong> 
+                        <span class="{% if pedido.estado_pago == 'pagado' %}text-green-600{% else %}text-orange-600{% endif %}">
+                            {{ pedido.estado_pago if pedido.estado_pago else 'Pendiente' }}
+                        </span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -57,4 +81,11 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function toggleDetalle(pedidoId) {
+    const detalle = document.getElementById(`detalle-${pedidoId}`);
+    detalle.classList.toggle('hidden');
+}
+</script>
 {% endblock %}
