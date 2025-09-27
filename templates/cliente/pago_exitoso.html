@@ -28,6 +28,44 @@
                     <span>Monto:</span>
                     <span class="font-bold text-green-600">${{ monto }}</span>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Información de tiempo estimado -->
+        {% if session.ultimo_pedido %}
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
+            <h3 class="font-semibold text-blue-800 mb-2">🕐 Información de Entrega</h3>
+            <div class="space-y-2 text-sm">
+                {% if session.ultimo_pedido.tiempo_estimado %}
+                <div class="flex justify-between">
+                    <span>Tiempo estimado:</span>
+                    <span class="font-bold text-blue-600">{{ session.ultimo_pedido.tiempo_estimado }} minutos</span>
+                </div>
+                {% endif %}
+                
+                {% if session.ultimo_pedido.hora_estimada %}
+                <div class="flex justify-between">
+                    <span>Llegada aproximada:</span>
+                    <span class="font-semibold">{{ session.ultimo_pedido.hora_estimada }}</span>
+                </div>
+                {% endif %}
+                
+                {% if session.ultimo_pedido.distancia %}
+                <div class="flex justify-between">
+                    <span>Distancia:</span>
+                    <span>{{ session.ultimo_pedido.distancia }} km</span>
+                </div>
+                {% endif %}
+                
+                {% if session.ultimo_pedido.restaurante %}
+                <div class="flex justify-between">
+                    <span>Restaurante:</span>
+                    <span class="font-semibold">{{ session.ultimo_pedido.restaurante }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
                 <div class="flex justify-between">
                     <span>Estado:</span>
                     <span class="text-green-600">Procesando...</span>

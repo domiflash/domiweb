@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from utils.auth_helpers import login_required, role_required
+from utils.delivery_calculator import DeliveryCalculator
+from datetime import datetime
 
 cliente_bp = Blueprint("cliente", __name__)
 
@@ -234,6 +236,30 @@ def checkout():
                 cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total))
                 current_app.db.commit()
                 
+                # 🕐 Calcular tiempo estimado de entrega
+                try:
+                    tiempo_info = DeliveryCalculator.calcular_tiempo_para_pedido(pedido_id)
+                    
+                    if tiempo_info:
+                        tiempo_formateado = DeliveryCalculator.formatear_tiempo_estimado(tiempo_info['tiempo_estimado'])
+                        flash(f"¡Pedido realizado con éxito! Total: ${total:.2f} - Llegará en {tiempo_formateado}", "success")
+                        
+                        # Guardar info de tiempo en sesión para mostrar en página de éxito
+                        session['ultimo_pedido'] = {
+                            'id': pedido_id,
+                            'total': float(total),
+                            'tiempo_estimado': tiempo_info['tiempo_estimado'],
+                            'hora_estimada': tiempo_info['hora_estimada'].strftime('%H:%M'),
+                            'distancia': tiempo_info['distancia_km'],
+                            'restaurante': tiempo_info['restaurante'],
+                            'metodo_pago': metodo_pago
+                        }
+                    else:
+                        flash(f"¡Pedido realizado con éxito! Total: ${total:.2f}", "success")
+                except Exception as e:
+                    print(f"Error calculando tiempo: {e}")
+                    flash(f"¡Pedido realizado con éxito! Total: ${total:.2f}", "success")
+                
                 # Redirigir a página de pago exitoso
                 return redirect(url_for("cliente.pago_exitoso", pedido_id=pedido_id, metodo=metodo_pago, total=total))
                 
@@ -277,12 +303,13 @@ def checkout():
 @login_required
 @role_required("cliente")
 def mis_pedidos():
-    """Muestra el historial de pedidos del cliente."""
+    """Muestra el historial de pedidos del cliente con tiempo estimado."""
     user_id = session.get("usuario_id")
     cursor = current_app.db.cursor()
     
     cursor.execute("""
         SELECT p.idped, r.nomres, p.estped, p.fecha_creacion,
+               p.tiempo_estimado_minutos, p.hora_estimada_entrega,
                SUM(dp.cantidad * dp.precio_unitario) as total,
                pg.metodo, pg.estado as estado_pago
         FROM pedidos p
@@ -290,11 +317,26 @@ def mis_pedidos():
         JOIN detalle_pedidos dp ON p.idped = dp.idped
         LEFT JOIN pagos pg ON p.idped = pg.idped
         WHERE p.idusu = %s
-        GROUP BY p.idped, r.nomres, p.estped, p.fecha_creacion, pg.metodo, pg.estado
+        GROUP BY p.idped, r.nomres, p.estped, p.fecha_creacion, 
+                 p.tiempo_estimado_minutos, p.hora_estimada_entrega, pg.metodo, pg.estado
         ORDER BY p.fecha_creacion DESC
     """, (user_id,))
     
-    pedidos = cursor.fetchall()
+    pedidos_raw = cursor.fetchall()
+    
+    # Enriquecer datos de pedidos con información de entrega
+    pedidos = []
+    for pedido in pedidos_raw:
+        pedido_dict = dict(pedido)
+        
+        # Calcular estado de entrega si hay tiempo estimado
+        if pedido['tiempo_estimado_minutos']:
+            estado_entrega = DeliveryCalculator.obtener_estado_entrega_con_tiempo(pedido['idped'])
+            if estado_entrega:
+                pedido_dict.update(estado_entrega)
+        
+        pedidos.append(pedido_dict)
+    
     return render_template("cliente/mis_pedidos.html", pedidos=pedidos)
 
 @cliente_bp.route("/pago-exitoso")

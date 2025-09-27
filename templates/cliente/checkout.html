@@ -1,71 +1,325 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center">Finalizar Pedido</h1>
+{% block title %}Finalizar Pedido - DomiFlash{% endblock %}
 
+{% block content %}
+<!-- Header de checkout -->
+<section class="bg-gradient-to-r from-domi-orange to-domi-red text-white py-8">
+  <div class="container mx-auto px-6">
+    <div class="flex items-center justify-center space-x-4">
+      <div class="bg-white bg-opacity-20 p-3 rounded-full">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+      <div class="text-center">
+        <h1 class="text-3xl font-bold">Finalizar Pedido</h1>
+        <p class="text-orange-100">Confirma tu pedido y selecciona el método de pago</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Progreso del checkout -->
+<section class="bg-white py-6 shadow-sm">
+  <div class="container mx-auto px-6">
+    <div class="flex items-center justify-center space-x-8">
+      <div class="flex items-center text-green-600">
+        <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
+        <span class="ml-2 font-medium">Carrito</span>
+      </div>
+      <div class="w-16 h-0.5 bg-domi-orange"></div>
+      <div class="flex items-center text-domi-orange">
+        <div class="w-8 h-8 bg-domi-orange text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+        <span class="ml-2 font-medium">Checkout</span>
+      </div>
+      <div class="w-16 h-0.5 bg-gray-300"></div>
+      <div class="flex items-center text-gray-400">
+        <div class="w-8 h-8 bg-gray-300 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+        <span class="ml-2 font-medium">Confirmación</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="py-12 bg-gray-50">
+  <div class="container mx-auto px-6">
+    
+    <!-- Alerta de múltiples restaurantes -->
     {% if restaurantes|length > 1 %}
-    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6">
-        <strong>Nota:</strong> Tienes productos de múltiples restaurantes. Debes crear pedidos separados.
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-r-lg">
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-yellow-800">Múltiples restaurantes detectados</h3>
+          <div class="mt-2 text-sm text-yellow-700">
+            <p>Tienes productos de diferentes restaurantes. Debes crear pedidos separados para cada uno.</p>
+          </div>
+        </div>
+      </div>
     </div>
     {% endif %}
 
-    {% for restaurante_id, datos in restaurantes.items() %}
-    <div class="bg-white shadow-lg rounded-lg mb-6 p-6">
-        <h2 class="text-2xl font-bold mb-4">{{ datos.nombre }}</h2>
-        
-        <table class="table-auto w-full border border-gray-300 mb-4">
-            <thead class="bg-gray-800 text-white">
-                <tr>
-                    <th class="px-4 py-2">Producto</th>
-                    <th class="px-4 py-2">Precio</th>
-                    <th class="px-4 py-2">Cantidad</th>
-                    <th class="px-4 py-2">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for producto in datos.productos %}
-                <tr class="odd:bg-gray-100 even:bg-white">
-                    <td class="border px-4 py-2">{{ producto.nompro }}</td>
-                    <td class="border px-4 py-2 text-center">${{ producto.prepro }}</td>
-                    <td class="border px-4 py-2 text-center">{{ producto.canprocar }}</td>
-                    <td class="border px-4 py-2 text-center">${{ producto.subtotal }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot class="bg-gray-200">
-                <tr>
-                    <td colspan="3" class="border px-4 py-2 text-right font-bold">Total:</td>
-                    <td class="border px-4 py-2 text-center font-bold">${{ datos.total }}</td>
-                </tr>
-            </tfoot>
-        </table>
+    <!-- Pedidos por restaurante -->
+    <div class="space-y-8">
+      {% for restaurante_id, datos in restaurantes.items() %}
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <!-- Header del restaurante -->
+        <div class="bg-gradient-to-r from-domi-orange to-domi-red text-white p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="bg-white bg-opacity-20 p-3 rounded-xl">
+                <div class="text-2xl">🍽️</div>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold">{{ datos.nombre }}</h2>
+                <p class="text-orange-100">{{ datos.productos|length }} producto{{ 's' if datos.productos|length != 1 else '' }} en tu pedido</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-orange-100 text-sm">Total</p>
+              <p class="text-3xl font-bold">${{ datos.total }}</p>
+            </div>
+          </div>
+        </div>
 
-        <form action="{{ url_for('cliente.checkout') }}" method="POST" class="space-y-4">
+        <!-- Detalles del pedido -->
+        <div class="p-6">
+          <!-- Lista de productos elegante -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-domi-dark mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Resumen del pedido
+            </h3>
+            
+            <div class="space-y-3">
+              {% for producto in datos.productos %}
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-domi-gradient rounded-lg flex items-center justify-center text-xl">
+                    {{ ['🍔', '🍕', '🌮', '🍟', '🥤', '🍰'][loop.index0 % 6] }}
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-domi-dark">{{ producto.nompro }}</h4>
+                    <p class="text-gray-600 text-sm">Precio unitario: ${{ producto.prepro }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-gray-600">Cantidad: {{ producto.canprocar }}</p>
+                  <p class="font-bold text-domi-orange">${{ producto.subtotal }}</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Total con desglose -->
+            <div class="mt-6 bg-domi-gradient-light rounded-lg p-4">
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>${{ datos.total }}</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                  <span>Domicilio</span>
+                  <span class="text-green-600 font-medium">GRATIS</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                  <span>Tiempo estimado</span>
+                  <span class="text-domi-orange font-medium">25-35 min</span>
+                </div>
+                <hr class="my-3 border-gray-300">
+                <div class="flex justify-between text-lg font-bold text-domi-dark">
+                  <span>Total a pagar</span>
+                  <span>${{ datos.total }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario de pago -->
+          <form action="{{ url_for('cliente.checkout') }}" method="POST" class="checkout-form">
             <input type="hidden" name="restaurante_id" value="{{ restaurante_id }}">
             
-            <div>
-                <label for="metodo_pago" class="block text-sm font-medium text-gray-700">Método de Pago:</label>
-                <select name="metodo_pago" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                    <option value="">Seleccione método de pago</option>
-                    <option value="efectivo">Efectivo</option>
-                    <option value="tarjeta">Tarjeta</option>
-                    <option value="nequi">Nequi</option>
-                    <option value="daviplata">Daviplata</option>
-                    <option value="otro">Otro</option>
-                </select>
+            <div class="mb-8">
+              <h3 class="text-lg font-semibold text-domi-dark mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Método de pago
+              </h3>
+
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <label class="payment-option">
+                  <input type="radio" name="metodo_pago" value="efectivo" class="sr-only" required>
+                  <div class="payment-card">
+                    <div class="payment-icon">💵</div>
+                    <div>
+                      <h4 class="font-semibold">Efectivo</h4>
+                      <p class="text-sm text-gray-600">Pago al recibir</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="metodo_pago" value="tarjeta" class="sr-only">
+                  <div class="payment-card">
+                    <div class="payment-icon">💳</div>
+                    <div>
+                      <h4 class="font-semibold">Tarjeta</h4>
+                      <p class="text-sm text-gray-600">Débito/Crédito</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="metodo_pago" value="nequi" class="sr-only">
+                  <div class="payment-card">
+                    <div class="payment-icon">📱</div>
+                    <div>
+                      <h4 class="font-semibold">Nequi</h4>
+                      <p class="text-sm text-gray-600">Pago digital</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="metodo_pago" value="daviplata" class="sr-only">
+                  <div class="payment-card">
+                    <div class="payment-icon">💰</div>
+                    <div>
+                      <h4 class="font-semibold">Daviplata</h4>
+                      <p class="text-sm text-gray-600">Billetera digital</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="metodo_pago" value="otro" class="sr-only">
+                  <div class="payment-card">
+                    <div class="payment-icon">🏦</div>
+                    <div>
+                      <h4 class="font-semibold">Otro</h4>
+                      <p class="text-sm text-gray-600">Transferencia</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
             </div>
-            
-            <div class="flex justify-between">
-                <a href="{{ url_for('cliente.mostrar_carrito') }}" class="bg-gray-500 text-white px-6 py-3 rounded hover:bg-gray-600">
-                    Volver al Carrito
-                </a>
-                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">
-                    Confirmar Pedido ({{ datos.total }})
-                </button>
+
+            <!-- Información adicional -->
+            <div class="mb-8">
+              <label for="notas" class="block text-sm font-medium text-gray-700 mb-2">
+                Notas especiales (opcional)
+              </label>
+              <textarea name="notas" id="notas" rows="3" 
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-domi-orange focus:border-transparent resize-none"
+                        placeholder="¿Alguna instrucción especial para tu pedido?"></textarea>
             </div>
-        </form>
+
+            <!-- Botones de acción -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-between">
+              <a href="{{ url_for('cliente.mostrar_carrito') }}" 
+                 class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-full font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Volver al Carrito
+              </a>
+              
+              <button type="submit" 
+                      class="inline-flex items-center justify-center px-8 py-3 bg-domi-gradient text-white rounded-full font-bold text-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Confirmar Pedido (${{ datos.total }})
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
+  </div>
 </div>
+
+<style>
+.payment-option {
+  cursor: pointer;
+}
+
+.payment-card {
+  @apply border-2 border-gray-200 rounded-lg p-4 flex items-center space-x-3 transition-all duration-200 hover:border-domi-orange hover:bg-domi-gradient-light;
+}
+
+.payment-option input:checked + .payment-card {
+  @apply border-domi-orange bg-domi-gradient-light ring-2 ring-domi-orange ring-opacity-50;
+}
+
+.payment-icon {
+  @apply text-2xl w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full;
+}
+
+.payment-option input:checked + .payment-card .payment-icon {
+  @apply bg-domi-orange text-white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Mejorar formularios de checkout
+  document.querySelectorAll('.checkout-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      
+      // Validar método de pago
+      const selectedPayment = form.querySelector('input[name="metodo_pago"]:checked');
+      if (!selectedPayment) {
+        e.preventDefault();
+        if (window.showToast) {
+          window.showToast('Por favor selecciona un método de pago', 'warning');
+        }
+        return;
+      }
+      
+      // Animación del botón
+      btn.innerHTML = `
+        <svg class="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Procesando pedido...
+      `;
+      btn.disabled = true;
+      
+      // Si hay algún error, restaurar el botón (esto se haría con validación del servidor)
+      setTimeout(() => {
+        if (window.location.pathname === '/cliente/checkout') {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }, 5000);
+    });
+  });
+
+  // Animación de entrada de las tarjetas
+  const cards = document.querySelectorAll('.bg-white.rounded-2xl');
+  cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s ease-out';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 200);
+  });
+});
+</script>
 {% endblock %}

@@ -1,19 +1,199 @@
 {% extends "base.html" %}
 
-{% block title %}Página de Inicio{% endblock %}
+{% block title %}DomiFlash - El mejor delivery de comida rápida{% endblock %}
+{% block description %}Descubre los mejores restaurantes y disfruta de entregas súper rápidas. DomiFlash te conecta con la mejor comida de tu ciudad.{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Bienvenido a DomiFlash</h1>
-<p class="mb-4">Selecciona una de las siguientes opciones para navegar:</p>
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-br from-domi-orange via-domi-red to-pink-500 min-h-screen flex items-center overflow-hidden">
+  <!-- Patrón de fondo animado -->
+  <div class="absolute inset-0 opacity-20">
+    <div class="absolute top-20 left-10 animate-float">
+      <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl animate-food-bounce">🍔</div>
+    </div>
+    <div class="absolute top-40 right-20 animate-float" style="animation-delay: 1s">
+      <div class="w-12 h-12 bg-domi-yellow rounded-full flex items-center justify-center text-2xl animate-food-bounce">🍕</div>
+    </div>
+    <div class="absolute bottom-40 left-1/4 animate-float" style="animation-delay: 2s">
+      <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-2xl animate-food-bounce">🌮</div>
+    </div>
+    <div class="absolute bottom-32 right-1/3 animate-float" style="animation-delay: 0.5s">
+      <div class="w-10 h-10 bg-domi-yellow rounded-full flex items-center justify-center text-xl animate-food-bounce">🍟</div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-6 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <!-- Contenido principal -->
+      <div class="text-white animate-fade-in-up">
+        <div class="mb-6">
+          <span class="bg-domi-yellow text-domi-dark px-4 py-2 rounded-full text-sm font-bold inline-block animate-pulse-slow">
+            🚀 ¡Entrega en menos de 30 minutos!
+          </span>
+        </div>
+        
+        <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+          La comida que 
+          <span class="text-domi-yellow animate-pulse">amas</span>,
+          <br>en tiempo 
+          <span class="bg-gradient-to-r from-domi-yellow to-yellow-200 bg-clip-text text-transparent">récord</span>
+        </h1>
+        
+        <p class="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
+          Descubre los mejores restaurantes de tu ciudad. Comida deliciosa, 
+          entrega garantizada y precios que te van a encantar.
+        </p>
+        
+        <!-- Estadísticas rápidas -->
+        <div class="grid grid-cols-3 gap-4 mb-8 text-center">
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+            <div class="text-2xl font-bold">500+</div>
+            <div class="text-sm opacity-75">Restaurantes</div>
+          </div>
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+            <div class="text-2xl font-bold">25min</div>
+            <div class="text-sm opacity-75">Promedio entrega</div>
+          </div>
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+            <div class="text-2xl font-bold">4.9★</div>
+            <div class="text-sm opacity-75">Calificación</div>
+          </div>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a href="{{ url_for('cliente.menu') }}" 
+             class="bg-white text-domi-orange px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105 text-center flex items-center justify-center space-x-2">
+            <span>🍕</span>
+            <span>Pedir Ahora</span>
+          </a>
+          <a href="{{ url_for('auth.register') }}" 
+             class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-domi-orange transition-all duration-200 text-center flex items-center justify-center space-x-2">
+            <span>📱</span>
+            <span>Crear Cuenta</span>
+          </a>
+        </div>
+        
+        <!-- Indicador de scroll -->
+        <div class="mt-12 text-center">
+          <div class="animate-bounce">
+            <svg class="w-6 h-6 mx-auto text-white opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+          </div>
+          <p class="text-sm opacity-75 mt-2">Desliza para ver más</p>
+        </div>
+      </div>
+      
+      <!-- Imagen principal (placeholder) -->
+      <div class="relative animate-fade-in-up" style="animation-delay: 0.3s">
+        <div class="relative bg-white bg-opacity-10 backdrop-blur-sm rounded-3xl p-8 shadow-2xl">
+          <!-- Mockup de app o imagen principal -->
+          <div class="bg-gradient-to-br from-white to-gray-100 rounded-2xl p-8 text-center shadow-inner">
+            <div class="text-8xl mb-4 animate-float">🍽️</div>
+            <h3 class="text-2xl font-bold text-domi-dark mb-2">Tu comida favorita</h3>
+            <p class="text-gray-600 mb-4">A solo unos clics de distancia</p>
+            <div class="bg-domi-gradient text-white px-6 py-3 rounded-full inline-block font-semibold">
+              ¡Prueba ahora!
+            </div>
+          </div>
+        </div>
+        
+        <!-- Elementos decorativos flotantes -->
+        <div class="absolute -top-6 -right-6 w-12 h-12 bg-domi-yellow rounded-full flex items-center justify-center text-2xl animate-bounce" style="animation-delay: 1s">
+          ⭐
+        </div>
+        <div class="absolute -bottom-6 -left-6 w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl animate-bounce" style="animation-delay: 2s">
+          🎉
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Wave separator -->
+  <div class="absolute bottom-0 left-0 right-0">
+    <svg class="w-full h-20 text-white" viewBox="0 0 1440 120" fill="currentColor">
+      <path d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+    </svg>
+  </div>
+</section>
 
-<ul class="list-disc pl-6 space-y-2">
-    <li><a href="/auth/login" class="text-blue-500 hover:underline">Iniciar Sesión</a></li>
-    <li><a href="/auth/register" class="text-blue-500 hover:underline">Registrarse</a></li>
-    <li><a href="/auth/logout" class="text-blue-500 hover:underline">Cerrar Sesion</a></li>
-    <li><a href="/admin/users" class="text-blue-500 hover:underline">Gestión de Usuarios</a></li>
-    <li><a href="/admin/categories" class="text-blue-500 hover:underline">Gestión de Categorías</a></li>
-    <li><a href="/cliente/menu" class="text-blue-500 hover:underline">Menú del Cliente</a></li>
-    <li><a href="/restaurante/productos" class="text-blue-500 hover:underline">Gestión de Productos</a></li>
-    <li><a href="/restaurante/pedidos" class="text-blue-500 hover:underline">Gestión de Pedidos</a></li>
-</ul>
+<!-- Sección de características -->
+<section class="bg-white py-20">
+  <div class="container mx-auto px-6">
+    <div class="text-center mb-16 scroll-animate">
+      <h2 class="text-4xl lg:text-5xl font-bold text-domi-dark mb-4">
+        ¿Por qué elegir DomiFlash?
+      </h2>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Somos más que una app de delivery. Somos tu mejor aliado para disfrutar 
+        de la mejor comida sin salir de casa.
+      </p>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Característica 1 -->
+      <div class="text-center p-8 rounded-2xl hover:shadow-xl transition-all duration-300 scroll-animate group">
+        <div class="bg-domi-gradient w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-4xl group-hover:scale-110 transition-transform">
+          ⚡
+        </div>
+        <h3 class="text-2xl font-bold text-domi-dark mb-4">Súper Rápido</h3>
+        <p class="text-gray-600 leading-relaxed">
+          Entrega promedio en 25 minutos. Nuestros repartidores conocen cada rincón 
+          de la ciudad para llegar a ti lo más rápido posible.
+        </p>
+      </div>
+      
+      <!-- Característica 2 -->
+      <div class="text-center p-8 rounded-2xl hover:shadow-xl transition-all duration-300 scroll-animate group" style="animation-delay: 0.1s">
+        <div class="bg-domi-gradient w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-4xl group-hover:scale-110 transition-transform">
+          🏆
+        </div>
+        <h3 class="text-2xl font-bold text-domi-dark mb-4">Calidad Garantizada</h3>
+        <p class="text-gray-600 leading-relaxed">
+          Solo trabajamos con los mejores restaurantes. Cada pedido es revisado 
+          cuidadosamente antes de salir a entrega.
+        </p>
+      </div>
+      
+      <!-- Característica 3 -->
+      <div class="text-center p-8 rounded-2xl hover:shadow-xl transition-all duration-300 scroll-animate group" style="animation-delay: 0.2s">
+        <div class="bg-domi-gradient w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-4xl group-hover:scale-110 transition-transform">
+          💰
+        </div>
+        <h3 class="text-2xl font-bold text-domi-dark mb-4">Precios Justos</h3>
+        <p class="text-gray-600 leading-relaxed">
+          Sin comisiones ocultas. Lo que ves es lo que pagas. Además, envío gratis 
+          en pedidos mayores a $30.000.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to action final -->
+<section class="bg-domi-gradient py-20">
+  <div class="container mx-auto px-6 text-center">
+    <div class="max-w-4xl mx-auto text-white scroll-animate">
+      <h2 class="text-4xl lg:text-5xl font-bold mb-6">
+        ¿Listo para disfrutar?
+      </h2>
+      <p class="text-xl mb-8 opacity-90">
+        Únete a miles de usuarios que ya disfrutan de la mejor comida 
+        con DomiFlash. ¡Tu primera entrega es gratis!
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="{{ url_for('cliente.menu') }}" 
+           class="bg-white text-domi-orange px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105">
+          🍕 Ver Restaurantes
+        </a>
+        <a href="{{ url_for('auth.register') }}" 
+           class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-domi-orange transition-all duration-200">
+          📝 Crear Cuenta Gratis
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 {% endblock %}

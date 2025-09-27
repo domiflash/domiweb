@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Sin conexión - DomiFlash{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div class="max-w-md w-full text-center">
+        <!-- Icono animado -->
+        <div class="mb-8">
+            <div class="relative mx-auto w-32 h-32">
+                <!-- Señal WiFi con animación -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="wifi-icon">
+                        <div class="wifi-bar wifi-bar-1"></div>
+                        <div class="wifi-bar wifi-bar-2"></div>
+                        <div class="wifi-bar wifi-bar-3"></div>
+                        <div class="wifi-bar wifi-bar-4"></div>
+                    </div>
+                </div>
+                <!-- Círculo pulsante de fondo -->
+                <div class="absolute inset-0 bg-red-100 dark:bg-red-900/20 rounded-full animate-ping opacity-20"></div>
+                <div class="absolute inset-2 bg-red-200 dark:bg-red-800/20 rounded-full animate-ping opacity-40 animation-delay-200"></div>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                📡 Sin conexión
+            </h1>
+            
+            <p class="text-gray-600 dark:text-gray-400 mb-6 text-lg leading-relaxed">
+                Parece que no tienes conexión a internet. 
+                No te preocupes, puedes seguir navegando algunas secciones que ya tienes guardadas.
+            </p>
+
+            <!-- Estado de conexión -->
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-center gap-3">
+                    <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span class="text-red-700 dark:text-red-400 font-medium">Desconectado</span>
+                </div>
+            </div>
+
+            <!-- Acciones disponibles -->
+            <div class="space-y-3 mb-6">
+                <button onclick="checkConnection()" 
+                        class="w-full bg-domi-orange hover:bg-domi-red text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Reintentar conexión
+                </button>
+
+                <button onclick="goToHome()" 
+                        class="w-full border-2 border-domi-orange text-domi-orange hover:bg-domi-orange hover:text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Ir al inicio
+                </button>
+            </div>
+
+            <!-- Consejos offline -->
+            <div class="text-left">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Mientras tanto puedes:</h3>
+                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-domi-orange rounded-full"></span>
+                        Ver restaurantes guardados
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-domi-orange rounded-full"></span>
+                        Revisar tu historial de pedidos
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-domi-orange rounded-full"></span>
+                        Explorar el menú guardado
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-domi-orange rounded-full"></span>
+                        Preparar tu próximo pedido
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-500">
+            Cuando recuperes la conexión, podrás continuar donde lo dejaste. 
+            ¡Los pedidos que tengas en el carrito se mantendrán guardados!
+        </p>
+    </div>
+</div>
+
+<style>
+/* Animaciones para el icono WiFi */
+.wifi-icon {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.wifi-bar {
+    position: absolute;
+    background: #ef4444;
+    opacity: 0.3;
+    animation: wifi-fade 2s infinite;
+}
+
+.wifi-bar-1 {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 0s;
+}
+
+.wifi-bar-2 {
+    width: 20px;
+    height: 20px;
+    border: 4px solid;
+    border-top: none;
+    border-radius: 0 0 50px 50px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: transparent;
+    animation-delay: 0.2s;
+}
+
+.wifi-bar-3 {
+    width: 35px;
+    height: 35px;
+    border: 4px solid;
+    border-top: none;
+    border-radius: 0 0 50px 50px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: transparent;
+    animation-delay: 0.4s;
+}
+
+.wifi-bar-4 {
+    width: 50px;
+    height: 50px;
+    border: 4px solid;
+    border-top: none;
+    border-radius: 0 0 50px 50px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: transparent;
+    animation-delay: 0.6s;
+}
+
+@keyframes wifi-fade {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.8; }
+}
+
+.animation-delay-200 {
+    animation-delay: 200ms;
+}
+
+/* Estado de conexión animado */
+@keyframes connection-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+</style>
+
+<script>
+// Verificar conexión
+function checkConnection() {
+    if (navigator.onLine) {
+        // Si hay conexión, recargar la página
+        window.location.reload();
+    } else {
+        // Mostrar mensaje de que sigue sin conexión
+        if (window.showToast) {
+            window.showToast('Aún no hay conexión disponible', 'warning');
+        }
+    }
+}
+
+// Ir al inicio (página cacheada)
+function goToHome() {
+    window.location.href = '/';
+}
+
+// Escuchar cuando se restaure la conexión
+window.addEventListener('online', () => {
+    console.log('✅ Conexión restaurada');
+    
+    // Mostrar notificación de conexión restaurada
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3';
+    notification.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div>
+            <div class="font-semibold">¡Conexión restaurada!</div>
+            <div class="text-sm opacity-90">Redirigiendo...</div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Redirigir después de 2 segundos
+    setTimeout(() => {
+        window.location.href = '/';
+    }, 2000);
+});
+
+// Actualizar indicador de conexión
+function updateConnectionStatus() {
+    const isOnline = navigator.onLine;
+    const statusElement = document.querySelector('.connection-status');
+    
+    if (statusElement) {
+        if (isOnline) {
+            statusElement.className = 'w-3 h-3 bg-green-500 rounded-full';
+            statusElement.parentElement.querySelector('span').textContent = 'Conectado';
+            statusElement.parentElement.querySelector('span').className = 'text-green-700 dark:text-green-400 font-medium';
+        } else {
+            statusElement.className = 'w-3 h-3 bg-red-500 rounded-full animate-pulse';
+            statusElement.parentElement.querySelector('span').textContent = 'Desconectado';
+            statusElement.parentElement.querySelector('span').className = 'text-red-700 dark:text-red-400 font-medium';
+        }
+    }
+}
+
+// Verificar conexión cada 5 segundos
+setInterval(updateConnectionStatus, 5000);
+
+// Animación de entrada
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.max-w-md');
+    if (container) {
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            container.style.transition = 'all 0.6s ease-out';
+            container.style.opacity = '1';
+            container.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

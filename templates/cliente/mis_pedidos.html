@@ -1,64 +1,344 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center">Mis Pedidos</h1>
+{% block title %}Mis Pedidos - DomiFlash{% endblock %}
 
+{% block content %}
+<!-- Header de pedidos -->
+<section class="bg-gradient-to-r from-domi-orange to-domi-red text-white py-12">
+  <div class="container mx-auto px-6">
+    <div class="text-center">
+      <div class="flex items-center justify-center mb-4">
+        <div class="bg-white bg-opacity-20 p-4 rounded-full mr-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+        <div class="text-left">
+          <h1 class="text-4xl font-bold">Mis Pedidos</h1>
+          <p class="text-orange-100">Rastrea el estado de tus pedidos en tiempo real</p>
+        </div>
+      </div>
+      
+      <!-- Stats rápidas -->
+      <div class="grid grid-cols-3 gap-4 max-w-md mx-auto mt-6">
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+          <div class="text-2xl font-bold">{{ pedidos|length }}</div>
+          <div class="text-sm opacity-75">Total Pedidos</div>
+        </div>
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+          <div class="text-2xl font-bold">{{ pedidos|selectattr("estped", "in", ["pendiente", "aceptado", "preparando", "en_camino"])|list|length }}</div>
+          <div class="text-sm opacity-75">Activos</div>
+        </div>
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+          <div class="text-2xl font-bold">{{ pedidos|selectattr("estped", "equalto", "entregado")|list|length }}</div>
+          <div class="text-sm opacity-75">Entregados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Filtros de pedidos -->
+<section class="bg-white shadow-sm border-b py-4">
+  <div class="container mx-auto px-6">
+    <div class="flex flex-wrap gap-3 justify-center">
+      <button class="filter-pedidos active" data-filter="all">
+        <span>📦</span> Todos
+      </button>
+      <button class="filter-pedidos" data-filter="activos">
+        <span>🔄</span> Activos
+      </button>
+      <button class="filter-pedidos" data-filter="entregado">
+        <span>✅</span> Entregados
+      </button>
+      <button class="filter-pedidos" data-filter="cancelado">
+        <span>❌</span> Cancelados
+      </button>
+    </div>
+  </div>
+</section>
+
+<div class="py-12 bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-6">
     {% if pedidos %}
-    <div class="grid gap-6">
-        {% for pedido in pedidos %}
-        <div class="bg-white shadow-lg rounded-lg p-6">
-            <div class="flex justify-between items-start mb-4">
+    <!-- Pedidos activos (destacados) -->
+    {% set pedidos_activos = pedidos|selectattr("estped", "in", ["pendiente", "aceptado", "preparando", "en_camino"])|list %}
+    {% if pedidos_activos %}
+    <div class="mb-12">
+      <h2 class="text-2xl font-bold text-domi-dark mb-6 flex items-center gap-2">
+        <div class="w-3 h-3 bg-domi-orange rounded-full animate-pulse"></div>
+        Pedidos en proceso
+      </h2>
+      <div class="space-y-6">
+        {% for pedido in pedidos_activos %}
+        <div class="pedido-card active bg-white rounded-2xl shadow-xl overflow-hidden border-l-4 border-domi-orange" data-status="{{ pedido.estped }}">
+          <!-- Header del pedido activo -->
+          <div class="bg-gradient-to-r from-domi-orange to-domi-red text-white p-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="flex items-center space-x-4">
+                <div class="bg-white bg-opacity-20 p-3 rounded-xl">
+                  <div class="w-8 h-8 flex items-center justify-center text-2xl">🍽️</div>
+                </div>
                 <div>
-                    <h3 class="text-xl font-bold">Pedido #{{ pedido.idped }}</h3>
-                    <p class="text-gray-600">{{ pedido.nomres }}</p>
-                    <p class="text-sm text-gray-500">{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                  <h3 class="text-xl font-bold">Pedido #{{ pedido.idped }}</h3>
+                  <p class="text-orange-100">{{ pedido.nomres }}</p>
+                  <p class="text-sm text-orange-200">{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-2xl font-bold text-green-600">${{ pedido.total }}</p>
-                    <span class="px-2 py-1 rounded-full text-white text-sm 
-                        {% if pedido.estped == 'entregado' %}bg-green-500
-                        {% elif pedido.estped == 'en_camino' %}bg-blue-500
-                        {% elif pedido.estped == 'preparando' %}bg-yellow-500
-                        {% elif pedido.estped == 'cancelado' %}bg-red-500
-                        {% else %}bg-gray-500{% endif %}">
-                        {{ pedido.estped|title }}
-                    </span>
+              </div>
+              
+              <div class="flex items-center gap-6">
+                <div class="text-center">
+                  <p class="text-orange-100 text-sm">Total</p>
+                  <p class="text-2xl font-bold">${{ pedido.total }}</p>
                 </div>
+                {% if pedido.tiempo_estimado_minutos and pedido.estped in ['pendiente', 'aceptado', 'preparando', 'en_camino'] %}
+                <div class="text-center">
+                  <p class="text-orange-100 text-sm">Tiempo restante</p>
+                  <p class="text-xl font-bold tracking-timer" data-pedido-id="{{ pedido.idped }}" data-tiempo-estimado="{{ pedido.tiempo_estimado_minutos }}">
+                    {{ pedido.tiempo_restante or pedido.tiempo_estimado_minutos }} min
+                  </p>
+                </div>
+                {% endif %}
+              </div>
             </div>
-            
-            <div class="border-t pt-4">
-                <div class="flex justify-between items-center">
+          </div>
+
+          <!-- Tracking en tiempo real -->
+          <div class="p-6">
+            <div class="mb-8">
+              <!-- Barra de progreso animada -->
+              <div class="relative">
+                <div class="flex justify-between text-sm font-medium mb-2">
+                  <span class="tracking-step {{ 'text-green-600' if pedido.estped in ['aceptado', 'preparando', 'en_camino', 'entregado'] else 'text-gray-400' }}">
+                    {% if pedido.estped in ['aceptado', 'preparando', 'en_camino', 'entregado'] %}✅{% else %}📝{% endif %} Confirmado
+                  </span>
+                  <span class="tracking-step {{ 'text-green-600' if pedido.estped in ['preparando', 'en_camino', 'entregado'] else ('text-domi-orange' if pedido.estped == 'aceptado' else 'text-gray-400') }}">
+                    {% if pedido.estped in ['preparando', 'en_camino', 'entregado'] %}✅{% elif pedido.estped == 'aceptado' %}👨‍🍳{% else %}⏳{% endif %} Preparando
+                  </span>
+                  <span class="tracking-step {{ 'text-green-600' if pedido.estped in ['en_camino', 'entregado'] else ('text-domi-orange' if pedido.estped == 'preparando' else 'text-gray-400') }}">
+                    {% if pedido.estped in ['en_camino', 'entregado'] %}✅{% elif pedido.estped == 'preparando' %}🚴‍♂️{% else %}📦{% endif %} En camino
+                  </span>
+                  <span class="tracking-step {{ 'text-green-600' if pedido.estped == 'entregado' else ('text-domi-orange' if pedido.estped == 'en_camino' else 'text-gray-400') }}">
+                    {% if pedido.estped == 'entregado' %}✅{% elif pedido.estped == 'en_camino' %}🏠{% else %}📍{% endif %} Entregado
+                  </span>
+                </div>
+                
+                <!-- Barra de progreso -->
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                  <div class="progress-bar bg-gradient-to-r from-green-500 to-domi-orange h-2 rounded-full transition-all duration-1000 ease-out
+                    {% if pedido.estped == 'pendiente' %}w-1/4
+                    {% elif pedido.estped == 'aceptado' %}w-2/4
+                    {% elif pedido.estped == 'preparando' %}w-3/4
+                    {% elif pedido.estped == 'en_camino' %}w-full
+                    {% elif pedido.estped == 'entregado' %}w-full bg-green-500
+                    {% else %}w-1/4{% endif %}
+                    {% if pedido.estped in ['pendiente', 'aceptado', 'preparando', 'en_camino'] %}animate-pulse{% endif %}">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Información del estado actual -->
+              <div class="bg-domi-gradient-light rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="status-icon">
+                      {% if pedido.estped == 'pendiente' %}
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                      {% elif pedido.estped == 'aceptado' %}
+                        <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      {% elif pedido.estped == 'preparando' %}
+                        <div class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                      {% elif pedido.estped == 'en_camino' %}
+                        <div class="w-3 h-3 bg-domi-orange rounded-full animate-bounce"></div>
+                      {% elif pedido.estped == 'entregado' %}
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                      {% endif %}
+                    </div>
                     <div>
-                        <p class="text-sm"><strong>Método de Pago:</strong> {{ pedido.metodo|title if pedido.metodo else 'No especificado' }}</p>
-                        <p class="text-sm">
-                            <strong>Estado del Pago:</strong> 
-                            <span class="{% if pedido.estado_pago == 'pagado' %}text-green-600{% else %}text-red-600{% endif %}">
-                                {{ pedido.estado_pago|title if pedido.estado_pago else 'Pendiente' }}
-                            </span>
-                        </p>
+                      <h4 class="font-semibold text-domi-dark">
+                        {% if pedido.estped == 'pendiente' %}⏳ Esperando confirmación
+                        {% elif pedido.estped == 'aceptado' %}✅ Pedido confirmado
+                        {% elif pedido.estped == 'preparando' %}👨‍🍳 Preparando tu pedido
+                        {% elif pedido.estped == 'en_camino' %}🚴‍♂️ En camino hacia ti
+                        {% elif pedido.estped == 'entregado' %}🎉 ¡Pedido entregado!
+                        {% else %}📋 {{ pedido.estped|title }}
+                        {% endif %}
+                      </h4>
+                      <p class="text-sm text-gray-600">
+                        {% if pedido.estped == 'pendiente' %}El restaurante está revisando tu pedido
+                        {% elif pedido.estped == 'aceptado' %}Tu pedido fue aceptado y pronto comenzará la preparación
+                        {% elif pedido.estped == 'preparando' %}Los chefs están preparando tu comida con amor
+                        {% elif pedido.estped == 'en_camino' %}Tu repartidor viene hacia tu ubicación
+                        {% elif pedido.estped == 'entregado' %}¡Disfruta tu comida!
+                        {% else %}Estado actualizado
+                        {% endif %}
+                      </p>
                     </div>
-                    {% if pedido.estped in ['pendiente', 'aceptado', 'preparando', 'en_camino'] %}
-                    <div class="text-sm">
-                        <span class="text-blue-600">🕒 En proceso...</span>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Botón para ver detalles -->
-                    <button onclick="toggleDetalle({{ pedido.idped }})" 
-                            class="text-sm text-blue-600 hover:underline mt-2">
-                        Ver detalles
-                    </button>
+                  </div>
+                  
+                  {% if pedido.tiempo_estimado_minutos and pedido.estped in ['preparando', 'en_camino'] %}
+                  <div class="text-right">
+                    <p class="text-sm text-gray-600">ETA</p>
+                    <p class="text-lg font-bold text-domi-orange countdown" data-minutes="{{ pedido.tiempo_restante or pedido.tiempo_estimado_minutos }}">
+                      {{ pedido.tiempo_restante or pedido.tiempo_estimado_minutos }} min
+                    </p>
+                  </div>
+                  {% endif %}
                 </div>
+              </div>
+
+              <!-- Simulación de mapa (placeholder) -->
+              {% if pedido.estped == 'en_camino' %}
+              <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center mb-6 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100"></div>
+                <div class="relative z-10 text-center">
+                  <div class="animate-bounce mb-4 text-4xl">🗺️</div>
+                  <p class="text-gray-700 font-semibold">Seguimiento en tiempo real</p>
+                  <p class="text-sm text-gray-500">Tu repartidor está en camino</p>
+                  <div class="mt-3 flex items-center justify-center space-x-2">
+                    <div class="w-2 h-2 bg-domi-orange rounded-full animate-pulse"></div>
+                    <div class="w-2 h-2 bg-domi-orange rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+                    <div class="w-2 h-2 bg-domi-orange rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+                  </div>
+                </div>
+                
+                <!-- Elementos decorativos del mapa -->
+                <div class="absolute top-4 left-4 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+                <div class="absolute bottom-6 right-6 w-4 h-4 bg-domi-orange rounded-full animate-bounce"></div>
+                <div class="absolute top-1/2 left-1/3 w-2 h-2 bg-blue-500 rounded-full"></div>
+              </div>
+
+              <!-- Info del repartidor -->
+              <div class="bg-white border rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-domi-gradient rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      {{ ['J', 'M', 'C', 'L', 'A'][loop.index0 % 5] }}
+                    </div>
+                    <div>
+                      <h4 class="font-semibold">{{ ['Juan Carlos', 'María López', 'Carlos Ruiz', 'Laura García', 'Andrés Silva'][loop.index0 % 5] }}</h4>
+                      <div class="flex items-center space-x-1">
+                        <span class="text-yellow-500">⭐⭐⭐⭐⭐</span>
+                        <span class="text-sm text-gray-600">(4.{{ 7 + (loop.index % 3) }})</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex space-x-2">
+                    <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                      📞 Llamar
+                    </button>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                      💬 Chat
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
             </div>
-            
-            <!-- Panel de detalles (oculto por defecto) -->
-            <div id="detalle-{{ pedido.idped }}" class="hidden border-t pt-4 mt-4">
-                <h4 class="font-semibold mb-2">Detalles del Pedido</h4>
-                <div class="text-sm space-y-1">
-                    <p><strong>ID del Pedido:</strong> #{{ pedido.idped }}</p>
-                    <p><strong>Fecha:</strong> {{ pedido.fecha_creacion.strftime('%d de %B de %Y a las %H:%M') }}</p>
-                    <p><strong>Restaurante:</strong> {{ pedido.nomres }}</p>
+
+            <!-- Botón para ver detalles -->
+            <div class="text-center">
+              <button onclick="toggleDetalle({{ pedido.idped }})" 
+                      class="text-domi-orange hover:text-domi-red font-medium transition-colors flex items-center gap-2 mx-auto">
+                <span>Ver detalles del pedido</span>
+                <svg class="w-4 h-4 transform transition-transform" id="arrow-{{ pedido.idped }}" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Historial de pedidos -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-domi-dark mb-6 flex items-center gap-2">
+        <span>📋</span>
+        Historial de pedidos
+      </h2>
+      
+      <div class="grid gap-6" id="pedidos-grid">
+        {% for pedido in pedidos %}
+        <div class="pedido-card bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300" data-status="{{ pedido.estped }}">
+          <div class="flex flex-col lg:flex-row">
+            <!-- Info principal -->
+            <div class="flex-1 p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-domi-gradient rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                    #{{ pedido.idped }}
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-domi-dark">{{ pedido.nomres }}</h3>
+                    <p class="text-gray-600 text-sm">{{ pedido.fecha_creacion.strftime('%d de %B de %Y') }}</p>
+                    <p class="text-xs text-gray-500">{{ pedido.fecha_creacion.strftime('%H:%M') }}</p>
+                  </div>
+                </div>
+                
+                <div class="text-right">
+                  <p class="text-2xl font-bold text-domi-orange">${{ pedido.total }}</p>
+                  <span class="status-badge px-3 py-1 rounded-full text-white text-sm font-medium
+                    {% if pedido.estped == 'entregado' %}bg-green-500
+                    {% elif pedido.estped in ['en_camino', 'preparando'] %}bg-blue-500
+                    {% elif pedido.estped == 'aceptado' %}bg-yellow-500
+                    {% elif pedido.estped == 'cancelado' %}bg-red-500
+                    {% else %}bg-gray-500{% endif %}">
+                    {% if pedido.estped == 'entregado' %}✅ Entregado
+                    {% elif pedido.estped == 'en_camino' %}🚴‍♂️ En camino
+                    {% elif pedido.estped == 'preparando' %}👨‍🍳 Preparando
+                    {% elif pedido.estped == 'aceptado' %}✅ Confirmado
+                    {% elif pedido.estped == 'cancelado' %}❌ Cancelado
+                    {% else %}⏳ {{ pedido.estped|title }}{% endif %}
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Información adicional -->
+              <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                <div class="flex items-center gap-1">
+                  <span>💳</span>
+                  <span>{{ pedido.metodo|title if pedido.metodo else 'Efectivo' }}</span>
+                </div>
+                {% if pedido.tiempo_estimado_minutos %}
+                <div class="flex items-center gap-1">
+                  <span>🕐</span>
+                  <span>{{ pedido.tiempo_estimado_minutos }} min estimados</span>
+                </div>
+                {% endif %}
+                <div class="flex items-center gap-1">
+                  <span>💰</span>
+                  <span>{{ pedido.estado_pago|title if pedido.estado_pago else 'Pendiente' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="lg:w-48 p-6 bg-gray-50 lg:bg-transparent lg:flex lg:flex-col lg:justify-center">
+              <div class="flex lg:flex-col gap-3">
+                <button onclick="toggleDetalle({{ pedido.idped }})" 
+                        class="flex-1 lg:flex-none bg-domi-orange hover:bg-domi-red text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                  Ver detalles
+                </button>
+                
+                {% if pedido.estped == 'entregado' %}
+                <button class="flex-1 lg:flex-none border border-domi-orange text-domi-orange hover:bg-domi-orange hover:text-white px-4 py-2 rounded-lg font-medium transition-all text-sm">
+                  Reordenar
+                </button>
+                {% elif pedido.estped in ['pendiente', 'aceptado'] %}
+                <button onclick="cancelarPedido({{ pedido.idped }})" 
+                        class="flex-1 lg:flex-none border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-medium transition-all text-sm">
+                  Cancelar
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Panel de detalles oculto -->
                     <p><strong>Total:</strong> ${{ pedido.total }}</p>
                     <p><strong>Estado:</strong> <span class="capitalize">{{ pedido.estped|replace('_', ' ') }}</span></p>
                     <p><strong>Método de Pago:</strong> <span class="capitalize">{{ pedido.metodo if pedido.metodo else 'No especificado' }}</span></p>
@@ -69,23 +349,370 @@
                     </p>
                 </div>
             </div>
+        <div id="detalle-{{ pedido.idped }}" class="hidden">
+          <div class="bg-gray-50 rounded-lg p-6 mt-4">
+            <h4 class="font-semibold mb-4 text-domi-dark flex items-center gap-2">
+              <span>📋</span>
+              Detalles del pedido #{{ pedido.idped }}
+            </h4>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- Información general -->
+              <div>
+                <h5 class="font-medium text-gray-700 mb-3">Información general</h5>
+                <div class="space-y-2 text-sm">
+                  <p><span class="text-gray-600">Fecha:</span> <span class="font-medium">{{ pedido.fecha_creacion.strftime('%d de %B de %Y') }}</span></p>
+                  <p><span class="text-gray-600">Hora:</span> <span class="font-medium">{{ pedido.fecha_creacion.strftime('%H:%M') }}</span></p>
+                  <p><span class="text-gray-600">Restaurante:</span> <span class="font-medium">{{ pedido.nomres }}</span></p>
+                  <p><span class="text-gray-600">Método de pago:</span> <span class="font-medium">{{ pedido.metodo|title if pedido.metodo else 'Efectivo' }}</span></p>
+                  <p><span class="text-gray-600">Estado del pago:</span> 
+                     <span class="px-2 py-1 rounded-full text-xs font-medium {{ 'bg-green-100 text-green-800' if pedido.estado_pago == 'pagado' else 'bg-yellow-100 text-yellow-800' }}">
+                       {{ pedido.estado_pago|title if pedido.estado_pago else 'Pendiente' }}
+                     </span>
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Información de entrega -->
+              <div>
+                <h5 class="font-medium text-gray-700 mb-3">Información de entrega</h5>
+                <div class="space-y-2 text-sm">
+                  {% if pedido.tiempo_estimado_minutos %}
+                  <p><span class="text-gray-600">Tiempo estimado:</span> <span class="font-medium">{{ pedido.tiempo_estimado_minutos }} minutos</span></p>
+                  {% endif %}
+                  {% if pedido.hora_estimada_entrega %}
+                  <p><span class="text-gray-600">Hora estimada:</span> <span class="font-medium">{{ pedido.hora_estimada_entrega.strftime('%H:%M') }}</span></p>
+                  {% endif %}
+                  <p><span class="text-gray-600">Estado:</span> 
+                     <span class="px-2 py-1 rounded-full text-xs font-medium
+                       {% if pedido.estped == 'entregado' %}bg-green-100 text-green-800
+                       {% elif pedido.estped in ['en_camino', 'preparando'] %}bg-blue-100 text-blue-800
+                       {% elif pedido.estped == 'aceptado' %}bg-yellow-100 text-yellow-800
+                       {% elif pedido.estped == 'cancelado' %}bg-red-100 text-red-800
+                       {% else %}bg-gray-100 text-gray-800{% endif %}">
+                       {{ pedido.estped|title }}
+                     </span>
+                  </p>
+                  <p><span class="text-gray-600">Total pagado:</span> <span class="font-bold text-domi-orange">${{ pedido.total }}</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones adicionales -->
+            <div class="mt-6 pt-4 border-t flex flex-wrap gap-3">
+              {% if pedido.estped == 'entregado' %}
+              <button class="bg-domi-orange hover:bg-domi-red text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                🔄 Reordenar
+              </button>
+              <button class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                ⭐ Calificar
+              </button>
+              {% elif pedido.estped in ['pendiente', 'aceptado'] %}
+              <button onclick="cancelarPedido({{ pedido.idped }})" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                ❌ Cancelar pedido
+              </button>
+              {% endif %}
+              <button class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                📞 Contactar soporte
+              </button>
+            </div>
+          </div>
         </div>
         {% endfor %}
+      </div>
     </div>
+
     {% else %}
-    <div class="text-center py-12">
-        <h2 class="text-xl text-gray-600 mb-4">No tienes pedidos aún</h2>
-        <a href="{{ url_for('cliente.menu') }}" class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600">
-            Explorar Menú
+    <!-- Estado vacío -->
+    <div class="text-center py-20">
+      <div class="max-w-md mx-auto">
+        <div class="text-8xl mb-6">📦</div>
+        <h2 class="text-3xl font-bold text-domi-dark mb-4">No tienes pedidos aún</h2>
+        <p class="text-gray-600 mb-8 text-lg">
+          ¡Es hora de hacer tu primer pedido! Explora nuestros restaurantes 
+          y encuentra comida deliciosa.
+        </p>
+        
+        <a href="{{ url_for('cliente.menu') }}" 
+           class="bg-domi-gradient text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 inline-flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          Explorar restaurantes
         </a>
+        
+        <!-- Sugerencias visuales -->
+        <div class="mt-12 grid md:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <div class="text-4xl mb-3">🍕</div>
+            <h3 class="font-semibold mb-2">Pizza Artesanal</h3>
+            <p class="text-sm text-gray-600">Recién horneada con ingredientes frescos</p>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <div class="text-4xl mb-3">🍔</div>
+            <h3 class="font-semibold mb-2">Hamburguesas</h3>
+            <p class="text-sm text-gray-600">Jugosas y con ingredientes premium</p>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <div class="text-4xl mb-3">🌮</div>
+            <h3 class="font-semibold mb-2">Comida Mexicana</h3>
+            <p class="text-sm text-gray-600">Sabores auténticos y tradicionales</p>
+          </div>
+        </div>
+      </div>
     </div>
     {% endif %}
+  </div>
 </div>
 
+<style>
+.filter-pedidos {
+  @apply px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-domi-orange hover:text-domi-orange transition-all duration-200 flex items-center gap-2 text-sm font-medium;
+}
+.filter-pedidos.active {
+  @apply bg-domi-orange text-white border-domi-orange;
+}
+
+.pedido-card.active {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 5px rgba(255, 107, 53, 0.2); }
+  to { box-shadow: 0 0 20px rgba(255, 107, 53, 0.4); }
+}
+
+.status-badge {
+  animation: pulse-status 2s infinite;
+}
+
+@keyframes pulse-status {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.progress-bar.animate-pulse {
+  animation: progress-pulse 2s ease-in-out infinite;
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+</style>
+
 <script>
+// Sistema de tracking en tiempo real
+class PedidosTracker {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.setupFilters();
+        this.setupCountdowns();
+        this.setupRealTimeUpdates();
+        this.animateEntrance();
+        console.log('🚚 Sistema de tracking iniciado');
+    }
+
+    setupFilters() {
+        const filterBtns = document.querySelectorAll('.filter-pedidos');
+        const pedidoCards = document.querySelectorAll('.pedido-card');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Actualizar botones
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Filtrar pedidos
+                const filter = btn.dataset.filter;
+                let visibleCount = 0;
+
+                pedidoCards.forEach(card => {
+                    const status = card.dataset.status;
+                    let isVisible = false;
+
+                    switch (filter) {
+                        case 'all':
+                            isVisible = true;
+                            break;
+                        case 'activos':
+                            isVisible = ['pendiente', 'aceptado', 'preparando', 'en_camino'].includes(status);
+                            break;
+                        case 'entregado':
+                            isVisible = status === 'entregado';
+                            break;
+                        case 'cancelado':
+                            isVisible = status === 'cancelado';
+                            break;
+                    }
+
+                    if (isVisible) {
+                        card.style.display = 'block';
+                        this.animateIn(card, visibleCount * 100);
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    }
+
+    setupCountdowns() {
+        const countdowns = document.querySelectorAll('.countdown');
+        
+        countdowns.forEach(countdown => {
+            const minutes = parseInt(countdown.dataset.minutes);
+            if (minutes > 0) {
+                this.startCountdown(countdown, minutes);
+            }
+        });
+    }
+
+    startCountdown(element, minutes) {
+        let totalSeconds = minutes * 60;
+        
+        const updateCountdown = () => {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            
+            if (totalSeconds > 0) {
+                element.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                totalSeconds--;
+            } else {
+                element.textContent = '¡Ya llegó!';
+                element.classList.add('text-green-600', 'font-bold', 'animate-bounce');
+            }
+        };
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    }
+
+    setupRealTimeUpdates() {
+        // Simular actualizaciones en tiempo real
+        setInterval(() => {
+            this.updateActiveOrders();
+        }, 30000); // Cada 30 segundos
+    }
+
+    updateActiveOrders() {
+        const activeOrders = document.querySelectorAll('.pedido-card.active');
+        
+        activeOrders.forEach(order => {
+            // Simular cambio de estado aleatorio
+            const currentStatus = order.dataset.status;
+            if (Math.random() < 0.1) { // 10% probabilidad de cambio
+                this.simulateStatusUpdate(order, currentStatus);
+            }
+        });
+    }
+
+    simulateStatusUpdate(orderElement, currentStatus) {
+        const statusProgression = {
+            'pendiente': 'aceptado',
+            'aceptado': 'preparando',
+            'preparando': 'en_camino',
+            'en_camino': 'entregado'
+        };
+
+        const newStatus = statusProgression[currentStatus];
+        if (newStatus && window.showToast) {
+            window.showToast(`¡Tu pedido cambió a: ${newStatus}!`, 'info');
+        }
+    }
+
+    animateEntrance() {
+        const cards = document.querySelectorAll('.pedido-card');
+        
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 150);
+        });
+    }
+
+    animateIn(element, delay = 0) {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            element.style.transition = 'all 0.5s ease-out';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, delay);
+    }
+}
+
+// Funciones globales
 function toggleDetalle(pedidoId) {
     const detalle = document.getElementById(`detalle-${pedidoId}`);
-    detalle.classList.toggle('hidden');
+    const arrow = document.getElementById(`arrow-${pedidoId}`);
+    
+    if (detalle) {
+        const isHidden = detalle.classList.contains('hidden');
+        
+        if (isHidden) {
+            detalle.classList.remove('hidden');
+            detalle.style.opacity = '0';
+            detalle.style.maxHeight = '0';
+            
+            setTimeout(() => {
+                detalle.style.transition = 'all 0.3s ease-out';
+                detalle.style.opacity = '1';
+                detalle.style.maxHeight = '500px';
+            }, 10);
+            
+            if (arrow) {
+                arrow.style.transform = 'rotate(180deg)';
+            }
+        } else {
+            detalle.style.opacity = '0';
+            detalle.style.maxHeight = '0';
+            
+            setTimeout(() => {
+                detalle.classList.add('hidden');
+            }, 300);
+            
+            if (arrow) {
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    }
 }
+
+function cancelarPedido(pedidoId) {
+    if (confirm('¿Estás seguro de que quieres cancelar este pedido?')) {
+        // Aquí se haría la petición al servidor
+        if (window.showToast) {
+            window.showToast('Pedido cancelado exitosamente', 'success');
+        }
+        
+        // Actualizar UI
+        const card = document.querySelector(`[data-status]`);
+        if (card) {
+            card.dataset.status = 'cancelado';
+            // Actualizar el badge de estado
+            const badge = card.querySelector('.status-badge');
+            if (badge) {
+                badge.className = 'status-badge px-3 py-1 rounded-full text-white text-sm font-medium bg-red-500';
+                badge.textContent = '❌ Cancelado';
+            }
+        }
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    window.pedidosTracker = new PedidosTracker();
+});
 </script>
 {% endblock %}
