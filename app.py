@@ -54,4 +54,23 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)
+    
+    # Puerto dinámico
+    puerto = int(os.sys.argv[1]) if len(os.sys.argv) > 1 else 5000
+
+    # Abrir navegador automáticamente
+    import webbrowser
+    webbrowser.open(f"http://127.0.0.1:{puerto}")
+
+    modo = os.environ.get("FLASK_ENV", "development")
+    if modo == "development":
+        print(f"🚀 Modo desarrollo: Flask corriendo en http://127.0.0.1:{puerto}")
+        from flask import cli
+        cli.show_server_banner = lambda *x: None
+        # Ejecuta Flask
+        from werkzeug.serving import run_simple
+        run_simple("127.0.0.1", puerto, app, use_reloader=True, use_debugger=True)
+    else:
+        from waitress import serve
+        print(f"🚀 Modo producción: Waitress corriendo en http://127.0.0.1:{puerto}")
+        serve(app, host="127.0.0.1", port=puerto)
