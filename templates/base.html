@@ -80,6 +80,12 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     
+    /* Asegurar que los dropdowns aparezcan por encima de todo */
+    #user-dropdown {
+      position: fixed !important;
+      z-index: 9999 !important;
+    }
+    
     /* Dark mode utilities */
     .dark {
       color-scheme: dark;
@@ -137,7 +143,7 @@
   <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
   
   <!-- Header Profesional -->
-  <header class="bg-gradient-to-r from-domi-orange to-domi-red shadow-lg relative overflow-hidden">
+  <header class="bg-gradient-to-r from-domi-orange to-domi-red shadow-lg fixed top-0 left-0 right-0 z-[100] overflow-hidden">
     <!-- Patrón de fondo decorativo -->
     <div class="absolute inset-0 opacity-10">
       <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
@@ -172,7 +178,7 @@
               <span>🍽️</span>
               <span>Restaurantes</span>
             </a>
-            <a href="{{ url_for('cliente.carrito') }}" class="text-white hover:text-domi-yellow transition-colors duration-200 font-medium flex items-center space-x-1">
+            <a href="{{ url_for('cliente.mostrar_carrito') }}" class="text-white hover:text-domi-yellow transition-colors duration-200 font-medium flex items-center space-x-1">
               <span>🛒</span>
               <span>Carrito</span>
             </a>
@@ -192,26 +198,101 @@
         <!-- Botones de acción -->
         <div class="hidden md:flex items-center space-x-4">
           {% if session.logged_in %}
+            <!-- Usuario logueado -->
             <div class="flex items-center space-x-3">
-              <div class="text-white text-sm">
-                <span class="opacity-75">Hola,</span>
-                <span class="font-semibold">{{ session.user_name or 'Usuario' }}</span>
+              <!-- Avatar y info del usuario -->
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-lg backdrop-blur-sm">
+                  {% if session.role == 'cliente' %}👤
+                  {% elif session.role == 'restaurante' %}🍽️
+                  {% elif session.role == 'repartidor' %}🚚
+                  {% elif session.role == 'administrador' %}⚙️
+                  {% else %}👤{% endif %}
+                </div>
+                <div class="text-white text-sm">
+                  <div class="opacity-75 text-xs">{{ session.role|title if session.role else 'Usuario' }}</div>
+                  <div class="font-semibold">{{ session.user_name or 'Usuario' }}</div>
+                </div>
               </div>
-              <a href="{{ url_for('auth.logout') }}" 
-                 class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-full transition-all duration-200 font-medium backdrop-blur-sm">
-                Cerrar Sesión
-              </a>
+              
+              <!-- Dropdown menu -->
+              <div class="relative">
+                <button id="user-menu-btn" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-full transition-all duration-200 font-medium backdrop-blur-sm flex items-center space-x-2">
+                  <span>Mi Cuenta</span>
+                  <svg class="w-4 h-4 transition-transform duration-200" id="dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                
+                <!-- Dropdown content -->
+                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[110]">
+                  <div class="py-2">
+                    {% if session.role == 'cliente' %}
+                    <a href="{{ url_for('cliente.perfil') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      👤 Mi Perfil
+                    </a>
+                    <a href="{{ url_for('cliente.mis_pedidos') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      📦 Mis Pedidos
+                    </a>
+                    {% elif session.role == 'restaurante' %}
+                    <a href="{{ url_for('restaurante.perfil') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      🍽️ Mi Restaurante
+                    </a>
+                    <a href="{{ url_for('restaurante.listar_productos') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      🍕 Productos
+                    </a>
+                    <a href="{{ url_for('restaurante.listar_pedidos') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      📋 Pedidos
+                    </a>
+                    {% elif session.role == 'repartidor' %}
+                    <a href="{{ url_for('repartidor.perfil') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      🚚 Mi Perfil
+                    </a>
+                    <a href="{{ url_for('repartidor.listar_pedidos') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      🚛 Entregas
+                    </a>
+                    {% elif session.role == 'administrador' %}
+                    <a href="{{ url_for('admin.list_users') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      ⚙️ Gestión Usuarios
+                    </a>
+                    <a href="{{ url_for('admin.list_categories') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      📂 Categorías
+                    </a>
+                    {% endif %}
+                    
+                    <hr class="my-2 border-gray-200 dark:border-gray-600">
+                    
+                    <!-- Dark mode toggle en el dropdown -->
+                    <button onclick="window.toggleTheme()" class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2">
+                      <span class="dark-mode-icon">🌙</span>
+                      <span>Cambiar Tema</span>
+                    </button>
+                    
+                    <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium">
+                      👋 Cerrar Sesión
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           {% else %}
+            <!-- Usuario no logueado -->
             <a href="{{ url_for('auth.login') }}" 
-               class="text-white hover:text-domi-yellow transition-colors duration-200 font-medium">
-              Iniciar Sesión
+               class="text-white hover:text-domi-yellow transition-colors duration-200 font-medium flex items-center space-x-1">
+              <span>🔑</span>
+              <span>Iniciar Sesión</span>
             </a>
             <a href="{{ url_for('auth.register') }}" 
-               class="bg-white text-domi-orange hover:bg-gray-100 px-6 py-2 rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
-              Registrarse
+               class="bg-white text-domi-orange hover:bg-gray-100 px-6 py-2 rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-1">
+              <span>📝</span>
+              <span>Registrarse</span>
             </a>
           {% endif %}
+          
+          <!-- Dark mode toggle standalone (siempre visible) -->
+          <button onclick="window.toggleTheme()" class="text-white hover:text-domi-yellow transition-colors duration-200 p-2 rounded-lg hover:bg-white hover:bg-opacity-20 ml-2" title="Cambiar tema">
+            <span class="dark-mode-icon text-xl">🌙</span>
+          </button>
         </div>
 
         <!-- Botón menú móvil -->
@@ -225,20 +306,114 @@
       <!-- Menú móvil -->
       <div id="mobile-menu" class="md:hidden hidden pb-4">
         <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 mt-4 space-y-3">
-          <a href="{{ url_for('index') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">🏠 Inicio</a>
+          <a href="{{ url_for('index') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+            <span>🏠</span>
+            <span>Inicio</span>
+          </a>
+          
           {% if session.logged_in %}
+            <!-- Usuario logueado - menú móvil -->
+            <div class="border-b border-white border-opacity-20 pb-3 mb-3">
+              <div class="flex items-center space-x-3 text-white mb-2">
+                <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-sm">
+                  {% if session.role == 'cliente' %}👤
+                  {% elif session.role == 'restaurante' %}🍽️
+                  {% elif session.role == 'repartidor' %}🚚
+                  {% elif session.role == 'administrador' %}⚙️
+                  {% else %}👤{% endif %}
+                </div>
+                <div>
+                  <div class="text-xs opacity-75">{{ session.role|title if session.role else 'Usuario' }}</div>
+                  <div class="font-semibold">{{ session.user_name or 'Usuario' }}</div>
+                </div>
+              </div>
+            </div>
+            
             {% if session.role == 'cliente' %}
-            <a href="{{ url_for('cliente.menu') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">🍽️ Restaurantes</a>
-            <a href="{{ url_for('cliente.carrito') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">🛒 Carrito</a>
-            <a href="{{ url_for('cliente.mis_pedidos') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">📦 Mis Pedidos</a>
+            <a href="{{ url_for('cliente.menu') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🍽️</span>
+              <span>Restaurantes</span>
+            </a>
+            <a href="{{ url_for('cliente.mostrar_carrito') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🛒</span>
+              <span>Carrito</span>
+            </a>
+            <a href="{{ url_for('cliente.mis_pedidos') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>📦</span>
+              <span>Mis Pedidos</span>
+            </a>
+            <a href="{{ url_for('cliente.perfil') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>👤</span>
+              <span>Mi Perfil</span>
+            </a>
+            {% elif session.role == 'restaurante' %}
+            <a href="{{ url_for('restaurante.listar_pedidos') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>📋</span>
+              <span>Pedidos</span>
+            </a>
+            <a href="{{ url_for('restaurante.listar_productos') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🍕</span>
+              <span>Productos</span>
+            </a>
+            <a href="{{ url_for('restaurante.perfil') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🍽️</span>
+              <span>Mi Restaurante</span>
+            </a>
+            {% elif session.role == 'repartidor' %}
+            <a href="{{ url_for('repartidor.listar_pedidos') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🚛</span>
+              <span>Entregas</span>
+            </a>
+            <a href="{{ url_for('repartidor.perfil') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🚚</span>
+              <span>Mi Perfil</span>
+            </a>
+            {% elif session.role == 'administrador' %}
+            <a href="{{ url_for('admin.list_users') }}" class="text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>⚙️</span>
+              <span>Gestión Usuarios</span>
+            </a>
+            <a href="{{ url_for('admin.list_categories') }}" class="text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>📂</span>
+              <span>Categorías</span>
+            </a>
             {% endif %}
+            
             <hr class="border-white border-opacity-20">
-            <a href="{{ url_for('auth.logout') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">👋 Cerrar Sesión</a>
+            
+            <!-- Dark mode toggle en móvil -->
+            <button onclick="window.toggleTheme()" class="block w-full text-left text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span class="dark-mode-icon">🌙</span>
+              <span>Cambiar Tema</span>
+            </button>
+            
+            <a href="{{ url_for('auth.logout') }}" class="block text-red-300 hover:text-red-100 transition-colors py-2 font-medium flex items-center space-x-2">
+              <span>👋</span>
+              <span>Cerrar Sesión</span>
+            </a>
           {% else %}
-          <a href="{{ url_for('cliente.menu') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">🍽️ Menú</a>
-          <hr class="border-white border-opacity-20">
-          <a href="{{ url_for('auth.login') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">🔑 Iniciar Sesión</a>
-          <a href="{{ url_for('auth.register') }}" class="block text-white hover:text-domi-yellow transition-colors py-2">📝 Registrarse</a>
+            <!-- Usuario no logueado - menú móvil -->
+            <a href="{{ url_for('cliente.menu') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🍽️</span>
+              <span>Menú</span>
+            </a>
+            
+            <hr class="border-white border-opacity-20">
+            
+            <a href="{{ url_for('auth.login') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>🔑</span>
+              <span>Iniciar Sesión</span>
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="block text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span>📝</span>
+              <span>Registrarse</span>
+            </a>
+            
+            <!-- Dark mode toggle en móvil para no logueados -->
+            <button onclick="window.toggleTheme()" class="block w-full text-left text-white hover:text-domi-yellow transition-colors py-2 flex items-center space-x-2">
+              <span class="dark-mode-icon">🌙</span>
+              <span>Cambiar Tema</span>
+            </button>
           {% endif %}
         </div>
       </div>
@@ -283,7 +458,7 @@
 {% endwith %}
 
   <!-- Contenido principal -->
-  <main class="min-h-screen">
+  <main class="min-h-screen pt-24">
     {% block content %}
     {% endblock %}
   </main>
@@ -417,6 +592,12 @@
         document.body.setAttribute('data-theme', 'dark');
       }
       
+      // Update dark mode icons
+      updateDarkModeIcons();
+      
+      // Setup user dropdown functionality
+      setupUserDropdown();
+      
       // Performance metrics (development only)
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         const loadTime = performance.now();
@@ -447,6 +628,85 @@
       });
     });
     
+    // User dropdown functionality
+    function setupUserDropdown() {
+      const dropdownBtn = document.getElementById('user-menu-btn');
+      const dropdown = document.getElementById('user-dropdown');
+      const arrow = document.getElementById('dropdown-arrow');
+      
+      if (dropdownBtn && dropdown) {
+        dropdownBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isHidden = dropdown.classList.contains('hidden');
+          
+          if (isHidden) {
+            // Position dropdown relative to button
+            const rect = dropdownBtn.getBoundingClientRect();
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = (rect.bottom + 8) + 'px';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+            dropdown.style.left = 'auto';
+            
+            dropdown.classList.remove('hidden');
+            dropdown.style.opacity = '0';
+            dropdown.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+              dropdown.style.transition = 'all 0.2s ease-out';
+              dropdown.style.opacity = '1';
+              dropdown.style.transform = 'translateY(0)';
+            }, 10);
+            
+            if (arrow) {
+              arrow.style.transform = 'rotate(180deg)';
+            }
+          } else {
+            dropdown.style.opacity = '0';
+            dropdown.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+              dropdown.classList.add('hidden');
+            }, 200);
+            
+            if (arrow) {
+              arrow.style.transform = 'rotate(0deg)';
+            }
+          }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+          if (!dropdown.classList.contains('hidden')) {
+            dropdown.style.opacity = '0';
+            dropdown.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+              dropdown.classList.add('hidden');
+            }, 200);
+            
+            if (arrow) {
+              arrow.style.transform = 'rotate(0deg)';
+            }
+          }
+        });
+        
+        // Prevent dropdown from closing when clicking inside
+        dropdown.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+      }
+    }
+    
+    // Update dark mode icons
+    function updateDarkModeIcons() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const icons = document.querySelectorAll('.dark-mode-icon');
+      
+      icons.forEach(icon => {
+        icon.textContent = isDark ? '☀️' : '🌙';
+      });
+    }
+    
     // Theme toggle utility
     window.toggleTheme = function() {
       const html = document.documentElement;
@@ -461,6 +721,9 @@
         document.body.setAttribute('data-theme', 'dark');
         localStorage.setItem('domiflash-theme', 'dark');
       }
+      
+      // Update all dark mode icons
+      updateDarkModeIcons();
       
       if (window.showToast) {
         window.showToast(`Modo ${isDark ? 'claro' : 'oscuro'} activado`, 'info');

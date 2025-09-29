@@ -39,7 +39,7 @@
 </section>
 
 <!-- Filtros de pedidos -->
-<section class="bg-white shadow-sm border-b py-4">
+<section class="dark-bg shadow-sm border-b dark-border py-4">
   <div class="container mx-auto px-6">
     <div class="flex flex-wrap gap-3 justify-center">
       <button class="filter-pedidos active" data-filter="all">
@@ -58,20 +58,20 @@
   </div>
 </section>
 
-<div class="py-12 bg-gray-50 min-h-screen">
+<div class="py-12 dark-bg min-h-screen">
   <div class="container mx-auto px-6">
     {% if pedidos %}
     <!-- Pedidos activos (destacados) -->
     {% set pedidos_activos = pedidos|selectattr("estped", "in", ["pendiente", "aceptado", "preparando", "en_camino"])|list %}
     {% if pedidos_activos %}
     <div class="mb-12">
-      <h2 class="text-2xl font-bold text-domi-dark mb-6 flex items-center gap-2">
+      <h2 class="text-2xl font-bold dark-text mb-6 flex items-center gap-2">
         <div class="w-3 h-3 bg-domi-orange rounded-full animate-pulse"></div>
         Pedidos en proceso
       </h2>
       <div class="space-y-6">
         {% for pedido in pedidos_activos %}
-        <div class="pedido-card active bg-white rounded-2xl shadow-xl overflow-hidden border-l-4 border-domi-orange" data-status="{{ pedido.estped }}">
+        <div class="pedido-card active dark-card rounded-2xl shadow-xl overflow-hidden border-l-4 border-domi-orange" data-status="{{ pedido.estped }}">
           <!-- Header del pedido activo -->
           <div class="bg-gradient-to-r from-domi-orange to-domi-red text-white p-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -209,7 +209,7 @@
               </div>
 
               <!-- Info del repartidor -->
-              <div class="bg-white border rounded-lg p-4">
+              <div class="dark-card border dark-border rounded-lg p-4">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 bg-domi-gradient rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -262,7 +262,7 @@
       
       <div class="grid gap-6" id="pedidos-grid">
         {% for pedido in pedidos %}
-        <div class="pedido-card bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300" data-status="{{ pedido.estped }}">
+        <div class="pedido-card dark-card shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300" data-status="{{ pedido.estped }}">
           <div class="flex flex-col lg:flex-row">
             <!-- Info principal -->
             <div class="flex-1 p-6">
@@ -443,20 +443,20 @@
         
         <!-- Sugerencias visuales -->
         <div class="mt-12 grid md:grid-cols-3 gap-6">
-          <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="dark-card p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div class="text-4xl mb-3">🍕</div>
-            <h3 class="font-semibold mb-2">Pizza Artesanal</h3>
-            <p class="text-sm text-gray-600">Recién horneada con ingredientes frescos</p>
+            <h3 class="font-semibold mb-2 dark-text">Pizza Artesanal</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Recién horneada con ingredientes frescos</p>
           </div>
-          <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="dark-card p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div class="text-4xl mb-3">🍔</div>
-            <h3 class="font-semibold mb-2">Hamburguesas</h3>
-            <p class="text-sm text-gray-600">Jugosas y con ingredientes premium</p>
+            <h3 class="font-semibold mb-2 dark-text">Hamburguesas</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Jugosas y con ingredientes premium</p>
           </div>
-          <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="dark-card p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div class="text-4xl mb-3">🌮</div>
-            <h3 class="font-semibold mb-2">Comida Mexicana</h3>
-            <p class="text-sm text-gray-600">Sabores auténticos y tradicionales</p>
+            <h3 class="font-semibold mb-2 dark-text">Comida Mexicana</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Sabores auténticos y tradicionales</p>
           </div>
         </div>
       </div>
@@ -715,4 +715,41 @@ document.addEventListener('DOMContentLoaded', () => {
     window.pedidosTracker = new PedidosTracker();
 });
 </script>
+
+<style>
+/* Estilos adicionales para modo oscuro */
+.text-gray-600 {
+  @apply dark:text-gray-400;
+}
+
+.text-gray-700 {
+  @apply dark:text-gray-300;
+}
+
+.text-gray-500 {
+  @apply dark:text-gray-500;
+}
+
+.font-medium {
+  @apply dark:text-white;
+}
+
+.filter-pedidos {
+  @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+  @apply bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
+  @apply hover:bg-gray-300 dark:hover:bg-gray-600;
+}
+
+.filter-pedidos.active {
+  @apply bg-domi-orange text-white shadow-lg;
+}
+
+.tracking-step {
+  @apply transition-colors duration-300;
+}
+
+.text-gray-400 {
+  @apply dark:text-gray-600;
+}
+</style>
 {% endblock %}

@@ -1,51 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6 text-center">Gestión de Usuarios</h1>
+<div class="min-h-screen dark-bg p-6">
+<h1 class="text-3xl font-bold mb-6 text-center dark-text">Gestión de Usuarios</h1>
 
 <div class="flex justify-center items-center mt-6">
     <div class="w-11/12 lg:w-3/4">
-        <table class="table-auto w-full border border-gray-300 shadow-lg rounded-lg">
-            <thead class="bg-gray-800 text-white">
-                <tr>
-                    <th class="px-4 py-2">ID</th>
-                    <th class="px-4 py-2">Nombre</th>
-                    <th class="px-4 py-2">Correo</th>
-                    <th class="px-4 py-2">Dirección</th>
-                    <th class="px-4 py-2">Rol</th>
-                    <th class="px-4 py-2">Estado</th>
-                    <th class="px-4 py-2">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="dark-card overflow-hidden">
+            <table class="table-auto w-full">
+                <thead class="bg-gray-800 dark:bg-gray-900">
+                    <tr>
+                        <th class="px-4 py-2 text-white">ID</th>
+                        <th class="px-4 py-2 text-white">Nombre</th>
+                        <th class="px-4 py-2 text-white">Correo</th>
+                        <th class="px-4 py-2 text-white">Dirección</th>
+                        <th class="px-4 py-2 text-white">Rol</th>
+                        <th class="px-4 py-2 text-white">Estado</th>
+                        <th class="px-4 py-2 text-white">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
                 {% for user in users %}
-                <tr class="odd:bg-gray-100 even:bg-white hover:bg-gray-200">
-                    <td class="border px-4 py-2 text-center">{{ user.idusu }}</td>
-                    <td class="border px-4 py-2">{{ user.nomusu }}</td>
-                    <td class="border px-4 py-2">{{ user.corusu }}</td>
-                    <td class="border px-4 py-2">{{ user.dirusu }}</td>
-                    <td class="border px-4 py-2 text-center">{{ user.rolusu }}</td>
-                    <td class="border px-4 py-2 text-center">
+                <tr class="odd:bg-gray-50 odd:dark:bg-gray-800 even:bg-white even:dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                    <td class="dark-border px-4 py-2 text-center dark-text">{{ user.idusu }}</td>
+                    <td class="dark-border px-4 py-2 dark-text">{{ user.nomusu }}</td>
+                    <td class="dark-border px-4 py-2 dark-text">{{ user.corusu }}</td>
+                    <td class="dark-border px-4 py-2 dark-text">{{ user.dirusu }}</td>
+                    <td class="dark-border px-4 py-2 text-center dark-text">{{ user.rolusu }}</td>
+                    <td class="dark-border px-4 py-2 text-center">
                         <span class="px-2 py-1 rounded-full text-white {{ 'bg-green-500' if user.estusu == 'activo' else 'bg-red-500' }}">
                             {{ user.estusu|capitalize }}
                         </span>
                     </td>
-                    <td class="border px-4 py-2 text-right">
+                    <td class="dark-border px-4 py-2 text-right">
                         <div class="flex flex-col space-y-2 items-end">
                             <form action="{{ url_for('admin.update_user', user_id=user.idusu) }}" method="post" class="inline-block">
-                                <input type="text" name="nomusu" value="{{ user.nomusu }}" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
-                                <input type="email" name="corusu" value="{{ user.corusu }}" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
-                                <input type="text" name="dirusu" value="{{ user.dirusu }}" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
-                                <select name="rolusu" class="border border-gray-300 rounded px-2 py-1 mb-1" required>
+                                <input type="text" name="nomusu" value="{{ user.nomusu }}" class="input text-sm mb-1 w-full" required>
+                                <input type="email" name="corusu" value="{{ user.corusu }}" class="input text-sm mb-1 w-full" required>
+                                <input type="text" name="dirusu" value="{{ user.dirusu }}" class="input text-sm mb-1 w-full" required>
+                                <select name="rolusu" class="input text-sm mb-1 w-full" required>
                                     <option value="cliente" {% if user.rolusu == 'cliente' %}selected{% endif %}>Cliente</option>
                                     <option value="restaurante" {% if user.rolusu == 'restaurante' %}selected{% endif %}>Restaurante</option>
                                     <option value="repartidor" {% if user.rolusu == 'repartidor' %}selected{% endif %}>Repartidor</option>
                                     <option value="administrador" {% if user.rolusu == 'administrador' %}selected{% endif %}>Administrador</option>
                                 </select>
-                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" type="submit">Actualizar</button>
+                                <button class="bg-blue-500 dark:bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors text-sm" type="submit">Actualizar</button>
                             </form>
                             <form action="{{ url_for('admin.toggle_user_status', user_id=user.idusu) }}" method="post" class="inline-block">
-                                <button class="{{ 'bg-red-500 hover:bg-red-600' if user.estusu == 'activo' else 'bg-green-500 hover:bg-green-600' }} text-white px-3 py-1 rounded" type="submit">
+                                <button class="{{ 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700' if user.estusu == 'activo' else 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' }} text-white px-3 py-1 rounded transition-colors text-sm" type="submit">
                                     {{ 'Desactivar' if user.estusu == 'activo' else 'Activar' }}
                                 </button>
                             </form>
@@ -53,9 +55,66 @@
                     </td>
                 </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+</div>
 
+<script>
+// Mejorar la experiencia de administración
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmar antes de cambiar estado de usuario
+    const toggleButtons = document.querySelectorAll('form[action*="toggle_user_status"] button');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const action = this.textContent.trim();
+            if (!confirm(`¿Estás seguro de que quieres ${action.toLowerCase()} este usuario?`)) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Validación mejorada de formularios
+    const updateForms = document.querySelectorAll('form[action*="update_user"]');
+    updateForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const inputs = form.querySelectorAll('input, select');
+            let hasError = false;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('border-red-500');
+                    hasError = true;
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+            
+            if (hasError) {
+                e.preventDefault();
+                if (window.showToast) {
+                    window.showToast('Por favor completa todos los campos', 'error');
+                }
+            }
+        });
+    });
+
+    // Animación de las filas
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            row.style.transition = 'all 0.5s ease-out';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    console.log('🔧 Admin Dashboard enhancements loaded');
+});
+</script>
 {% endblock %}

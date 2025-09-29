@@ -44,9 +44,9 @@ def dashboard():
     
     # Total ganado (simulado - 10% del total de pedidos)
     cursor.execute("""
-        SELECT SUM(dp.cantidad * dp.precio_unitario * 0.1) as total_ganado
+        SELECT COALESCE(SUM(dp.cantidad * dp.precio_unitario * 0.1), 0) as total_ganado
         FROM pedidos p
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         WHERE p.idrep = %s AND p.estped = 'entregado'
     """, (idrep,))
     result = cursor.fetchone()
@@ -87,36 +87,41 @@ def listar_pedidos():
         repartidor = cursor.fetchone()
     
     idrep = repartidor['idrep']
+    print(f"DEBUG: Repartidor ID: {idrep}")
     
     # Pedidos asignados al repartidor
     cursor.execute("""
         SELECT p.idped, u.nomusu as cliente, u.dirusu, r.nomres, 
                p.estped, p.fecha_creacion,
-               SUM(dp.cantidad * dp.precio_unitario) as total
+               COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) as total
         FROM pedidos p
         JOIN usuarios u ON p.idusu = u.idusu
         JOIN restaurantes r ON p.idres = r.idres
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         WHERE p.idrep = %s
         GROUP BY p.idped, u.nomusu, u.dirusu, r.nomres, p.estped, p.fecha_creacion
         ORDER BY p.fecha_creacion DESC
     """, (idrep,))
     pedidos_asignados = cursor.fetchall()
+    print(f"DEBUG: Pedidos asignados: {len(pedidos_asignados)}")
     
-    # Pedidos disponibles para asignar (estado aceptado, sin repartidor)
+    # Pedidos disponibles para asignar (estado pendiente, aceptado o preparando, sin repartidor)
     cursor.execute("""
         SELECT p.idped, u.nomusu as cliente, u.dirusu, r.nomres, 
                p.estped, p.fecha_creacion,
-               SUM(dp.cantidad * dp.precio_unitario) as total
+               COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) as total
         FROM pedidos p
         JOIN usuarios u ON p.idusu = u.idusu
         JOIN restaurantes r ON p.idres = r.idres
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
-        WHERE p.estped IN ('aceptado', 'preparando') AND p.idrep IS NULL
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
+        WHERE p.estped IN ('pendiente', 'aceptado', 'preparando') AND p.idrep IS NULL
         GROUP BY p.idped, u.nomusu, u.dirusu, r.nomres, p.estped, p.fecha_creacion
         ORDER BY p.fecha_creacion ASC
     """)
     pedidos_disponibles = cursor.fetchall()
+    print(f"DEBUG: Pedidos disponibles: {len(pedidos_disponibles)}")
+    for pedido in pedidos_disponibles:
+        print(f"DEBUG: Pedido {pedido['idped']} - Estado: {pedido['estped']} - Cliente: {pedido['cliente']}")
     
     return render_template("repartidor/pedidos.html", 
                          pedidos_asignados=pedidos_asignados,

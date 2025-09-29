@@ -117,10 +117,10 @@ def listar_pedidos():
         """
         SELECT p.idped, u.nomusu AS cliente, u.dirusu AS direccion, 
                p.estped, p.fecha_creacion, p.fecha_actualizacion,
-               SUM(dp.cantidad * dp.precio_unitario) AS total
+               COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) AS total
         FROM pedidos p
         JOIN usuarios u ON p.idusu = u.idusu
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         JOIN restaurantes r ON p.idres = r.idres
         WHERE r.idusu = %s
         GROUP BY p.idped, u.nomusu, u.dirusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
@@ -142,10 +142,10 @@ def detalle_pedido(idped):
     cursor.execute("""
         SELECT p.idped, u.nomusu AS cliente, u.dirusu AS direccion, 
                p.estped, p.fecha_creacion, p.fecha_actualizacion,
-               SUM(dp.cantidad * dp.precio_unitario) AS total
+               COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) AS total
         FROM pedidos p
         JOIN usuarios u ON p.idusu = u.idusu
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         WHERE p.idped = %s
         GROUP BY p.idped, u.nomusu, u.dirusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
     """, (idped,))

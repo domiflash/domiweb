@@ -3,28 +3,88 @@
 {% block title %}Gestión de Categorías{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Gestión de Categorías</h1>
+<div class="min-h-screen dark-bg p-6">
+<h1 class="text-2xl font-bold mb-6 dark-text">Gestión de Categorías</h1>
 
-<table class="table-auto w-full border border-gray-300 shadow-lg rounded-lg mb-6">
-    <thead class="bg-gray-800 text-white">
-        <tr>
-            <th class="px-4 py-2">ID</th>
-            <th class="px-4 py-2">Categoría</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="dark-card overflow-hidden mb-6">
+    <table class="table-auto w-full">
+        <thead class="bg-gray-800 dark:bg-gray-900">
+            <tr>
+                <th class="px-4 py-2 text-white">ID</th>
+                <th class="px-4 py-2 text-white">Categoría</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for category in categories %}
-        <tr class="odd:bg-gray-100 even:bg-white hover:bg-gray-200">
-            <td class="border px-4 py-2 text-center">{{ category.idcat }}</td>
-            <td class="border px-4 py-2">{{ category.tipcat }}</td>
+        <tr class="odd:bg-gray-50 odd:dark:bg-gray-800 even:bg-white even:dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+            <td class="dark-border px-4 py-2 text-center dark-text">{{ category.idcat }}</td>
+            <td class="dark-border px-4 py-2 dark-text">{{ category.tipcat }}</td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
 
-<h2 class="text-xl font-bold mb-4">Agregar Nueva Categoría</h2>
-<form action="/admin/categories" method="post" class="space-y-4">
-    <input type="text" name="tipcat" placeholder="Nombre de la Categoría" class="w-full p-2 border rounded" required>
-    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Agregar</button>
-</form>
+<div class="dark-card p-6">
+    <h2 class="text-xl font-bold mb-4 dark-text">Agregar Nueva Categoría</h2>
+    <form action="/admin/categories" method="post" class="space-y-4">
+        <input type="text" name="tipcat" placeholder="Nombre de la Categoría" class="input" required>
+        <button type="submit" class="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors">Agregar</button>
+    </form>
+</div>
+</div>
+
+<script>
+// Mejorar la experiencia de categorías
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario de nueva categoría
+    const form = document.querySelector('form[action="/admin/categories"]');
+    const input = form.querySelector('input[name="tipcat"]');
+    
+    form.addEventListener('submit', function(e) {
+        const value = input.value.trim();
+        
+        if (value.length < 2) {
+            e.preventDefault();
+            input.classList.add('border-red-500');
+            if (window.showToast) {
+                window.showToast('El nombre de la categoría debe tener al menos 2 caracteres', 'error');
+            }
+            return;
+        }
+        
+        input.classList.remove('border-red-500');
+    });
+
+    // Limpiar errores al escribir
+    input.addEventListener('input', function() {
+        this.classList.remove('border-red-500');
+    });
+
+    // Animación de las filas
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            row.style.transition = 'all 0.5s ease-out';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Confirmar antes de enviar
+    form.addEventListener('submit', function(e) {
+        if (input.value.trim()) {
+            const confirmMsg = `¿Agregar la categoría "${input.value.trim()}"?`;
+            if (!confirm(confirmMsg)) {
+                e.preventDefault();
+            }
+        }
+    });
+
+    console.log('📂 Categories management enhancements loaded');
+});
+</script>
 {% endblock %}

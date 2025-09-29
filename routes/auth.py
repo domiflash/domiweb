@@ -65,6 +65,9 @@ def login():
             # Guardar datos en sesión
             session["usuario_id"] = user["idusu"]
             session["rol"] = user["rolusu"]
+            session["logged_in"] = True
+            session["user_name"] = user["nomusu"]
+            session["role"] = user["rolusu"]  # Para compatibilidad con la navbar
     
             flash(f"Bienvenido, {user['nomusu']} 👋", "success")
 
@@ -88,8 +91,8 @@ def role_dashboard():
 
 
 @auth_bp.route("/logout")
-@login_required
 def logout():
+    # Limpiar todas las variables de sesión
     session.clear()
-    flash("Sesión cerrada correctamente", "info")
-    return redirect(url_for("auth.login"))
+    flash("Sesión cerrada correctamente 👋", "info")
+    return redirect(url_for("index"))

@@ -310,11 +310,11 @@ def mis_pedidos():
     cursor.execute("""
         SELECT p.idped, r.nomres, p.estped, p.fecha_creacion,
                p.tiempo_estimado_minutos, p.hora_estimada_entrega,
-               SUM(dp.cantidad * dp.precio_unitario) as total,
+               COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) as total,
                pg.metodo, pg.estado as estado_pago
         FROM pedidos p
         JOIN restaurantes r ON p.idres = r.idres
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         LEFT JOIN pagos pg ON p.idped = pg.idped
         WHERE p.idusu = %s
         GROUP BY p.idped, r.nomres, p.estped, p.fecha_creacion, 
