@@ -5,3 +5,4 @@ Flask-Session
 python-dotenv
 Flask-WTF
 waitress
+pymysql

@@ -8,15 +8,50 @@ cliente_bp = Blueprint("cliente", __name__)
 def test():
     return "Ruta de cliente funcionando 🚀"
 
-# Panel de Menús
+# # Panel de Menús
+# @cliente_bp.route("/menu", methods=["GET"])
+# @login_required
+# @role_required("cliente")
+# def menu():
+#     cursor = current_app.db.cursor()
+#     cursor.execute("SELECT idpro, nompro, despro, prepro FROM productos")
+#     productos = cursor.fetchall()
+#     return render_template("cliente/menu.html", productos=productos)
 @cliente_bp.route("/menu", methods=["GET"])
 @login_required
 @role_required("cliente")
 def menu():
     cursor = current_app.db.cursor()
-    cursor.execute("SELECT idpro, nompro, despro, prepro FROM productos")
-    productos = cursor.fetchall()
-    return render_template("cliente/menu.html", productos=productos)
+    
+    # Obtener restaurantes y sus productos
+    cursor.execute("""
+        SELECT r.idres, r.nomres, p.idpro, p.nompro, p.despro, p.prepro
+        FROM restaurantes r
+        LEFT JOIN productos p ON r.idres = p.idres
+        WHERE r.estres = 'activo'
+        ORDER BY r.nomres, p.nompro
+    """)
+    data = cursor.fetchall()
+    
+    # Agrupar productos por restaurante
+    restaurantes = {}
+    for row in data:
+        idres = row['idres']
+        if idres not in restaurantes:
+            restaurantes[idres] = {
+                'nombre': row['nomres'],
+                'productos': []
+            }
+        if row['idpro']:  # Si el restaurante tiene productos
+            restaurantes[idres]['productos'].append({
+                'idpro': row['idpro'],
+                'nompro': row['nompro'],
+                'despro': row['despro'],
+                'prepro': row['prepro']
+            })
+    
+    # Pasar la variable `restaurantes` a la plantilla
+    return render_template("cliente/menu.html", restaurantes=restaurantes)
 
 # Carrito de Compras
 @cliente_bp.route("/carrito", methods=["GET"])
@@ -45,6 +80,14 @@ def agregar_al_carrito():
     cantidad = int(request.form.get("cantidad", 1))
 
     cursor = current_app.db.cursor()
+    # Verificar el stock disponible
+    cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
+    producto = cursor.fetchone()
+
+    if not producto or cantidad > producto['stopro']:
+        flash("La cantidad solicitada excede el stock disponible.", "danger")
+        return redirect(url_for("cliente.mostrar_carrito"))
+
     # Verificar si el producto ya está en el carrito
     cursor.execute("""
         SELECT canprocar FROM carritos WHERE idusu = %s AND idpro = %s
@@ -54,6 +97,9 @@ def agregar_al_carrito():
     if resultado:
         # Actualizar la cantidad si ya existe
         nueva_cantidad = resultado['canprocar'] + cantidad
+        if nueva_cantidad > producto['stopro']:
+            flash("La cantidad total excede el stock disponible.", "danger")
+            return redirect(url_for("cliente.mostrar_carrito"))
         cursor.execute("""
             UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
         """, (nueva_cantidad, user_id, producto_id))
@@ -77,11 +123,19 @@ def actualizar_carrito():
     producto_id = request.form.get("producto_id")
     nueva_cantidad = int(request.form.get("cantidad"))
 
+    cursor = current_app.db.cursor()
+    # Verificar el stock disponible
+    cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
+    producto = cursor.fetchone()
+
+    if not producto or nueva_cantidad > producto['stopro']:
+        flash("La cantidad solicitada excede el stock disponible.", "danger")
+        return redirect(url_for("cliente.mostrar_carrito"))
+
     if nueva_cantidad <= 0:
         # Si la cantidad es 0 o menor, eliminar el producto
         return eliminar_del_carrito()
 
-    cursor = current_app.db.cursor()
     cursor.execute("""
         UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
     """, (nueva_cantidad, user_id, producto_id))
@@ -217,9 +271,7 @@ def checkout():
         restaurantes[item['idres']]['total'] += item['subtotal']
         total_general += item['subtotal']
 
-    return render_template("cliente/checkout.html", restaurantes=restaurantes
-                           
-                            , total_general=total_general)
+    return render_template("cliente/checkout.html", restaurantes=restaurantes, total_general=total_general)
 
 @cliente_bp.route("/mis-pedidos")
 @login_required

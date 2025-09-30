@@ -5,37 +5,37 @@ from routes.cliente import cliente_bp
 from routes.restaurante import restaurante_bp
 from routes.repartidor import repartidor_bp
 from routes.admin import admin_bp
-import MySQLdb
-import MySQLdb.cursors
+import pymysql.cursors  # ✅ usamos pymysql
 from flask_session import Session
 from dotenv import load_dotenv
 import os
+import sys
 
-# Load environment variables from .env file
+# Cargar variables de entorno desde .env
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
-    # Load configurations from environment variables
+    # Cargar configuraciones desde el .env
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     app.config['DB_HOST'] = os.getenv('DB_HOST')
     app.config['DB_USER'] = os.getenv('DB_USER')
     app.config['DB_PASSWORD'] = os.getenv('DB_PASSWORD')
     app.config['DB_NAME'] = os.getenv('DB_NAME')
 
-    # Conexión a MySQL
-    app.db = MySQLdb.connect(
+    # Conexión a MariaDB con pymysql
+    app.db = pymysql.connect(
         host=app.config["DB_HOST"],
         user=app.config["DB_USER"],
-        passwd=app.config["DB_PASSWORD"],
-        db=app.config["DB_NAME"],
-        cursorclass=MySQLdb.cursors.DictCursor
+        password=app.config["DB_PASSWORD"],
+        database=app.config["DB_NAME"],
+        cursorclass=pymysql.cursors.DictCursor
     )
 
     # Configurar Flask-Session para sesiones persistentes
     app.config['SESSION_TYPE'] = 'filesystem'  # Cambiar a 'redis' si se usa Redis
-    app.config['SESSION_PERMANENT'] = False  # Las sesiones no serán permanentes
+    app.config['SESSION_PERMANENT'] = False
     Session(app)
 
     # Registrar blueprints
@@ -54,23 +54,24 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    
-    # Puerto dinámico
-    puerto = int(os.sys.argv[1]) if len(os.sys.argv) > 1 else 5000
 
-    # Abrir navegador automáticamente
-    import webbrowser
-    webbrowser.open(f"http://127.0.0.1:{puerto}")
+    # Puerto dinámico
+    puerto = int(sys.argv[1]) if len(sys.argv) > 1 else 5000
+
+    # Solo abrir navegador en el proceso principal
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or os.environ.get("FLASK_ENV") == "production":
+        import webbrowser
+        webbrowser.open(f"http://127.0.0.1:{puerto}")
 
     modo = os.environ.get("FLASK_ENV", "development")
     if modo == "development":
         print(f"🚀 Modo desarrollo: Flask corriendo en http://127.0.0.1:{puerto}")
         from flask import cli
         cli.show_server_banner = lambda *x: None
-        # Ejecuta Flask
         from werkzeug.serving import run_simple
         run_simple("127.0.0.1", puerto, app, use_reloader=True, use_debugger=True)
     else:
         from waitress import serve
         print(f"🚀 Modo producción: Waitress corriendo en http://127.0.0.1:{puerto}")
         serve(app, host="127.0.0.1", port=puerto)
+
