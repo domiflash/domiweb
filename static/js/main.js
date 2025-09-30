@@ -520,7 +520,7 @@ class DarkModeManager {
 
     init() {
         this.applyTheme();
-        this.createToggle();
+        // this.createToggle(); // Comentado - ya existe toggle en base.html
         this.setupSystemListener();
     }
 
@@ -548,10 +548,11 @@ class DarkModeManager {
         this.applyTheme();
         localStorage.setItem('domiflash-theme', this.isDark ? 'dark' : 'light');
         
-        const toggle = document.getElementById('dark-toggle');
-        if (toggle) {
-            toggle.querySelector('span').textContent = this.isDark ? '☀️' : '🌙';
-        }
+        // Actualizar todos los iconos de dark mode existentes
+        const darkModeIcons = document.querySelectorAll('.dark-mode-icon');
+        darkModeIcons.forEach(icon => {
+            icon.textContent = this.isDark ? '☀️' : '🌙';
+        });
 
         if (window.domiUI) {
             window.domiUI.showToast(`Modo ${this.isDark ? 'oscuro' : 'claro'} activado`, 'info');

@@ -83,7 +83,7 @@
     /* Asegurar que los dropdowns aparezcan por encima de todo */
     #user-dropdown {
       position: fixed !important;
-      z-index: 9999 !important;
+      z-index: 200 !important;
     }
     
     /* Dark mode utilities */
@@ -225,7 +225,7 @@
                 </button>
                 
                 <!-- Dropdown content -->
-                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[110]">
+                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[200]">
                   <div class="py-2">
                     {% if session.role == 'cliente' %}
                     <a href="{{ url_for('cliente.perfil') }}" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -422,7 +422,7 @@
   <!-- Sistema de notificaciones mejorado -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="fixed top-4 right-4 z-50 space-y-2">
+    <div class="fixed top-24 right-4 z-50 space-y-2">
       {% for category, message in messages %}
         <div class="animate-slide-in-right transform transition-all duration-300
           {% if category == 'success' %}bg-green-500 border-l-4 border-green-600 text-white
@@ -458,7 +458,7 @@
 {% endwith %}
 
   <!-- Contenido principal -->
-  <main class="min-h-screen pt-24">
+  <main class="min-h-screen pt-20">
     {% block content %}
     {% endblock %}
   </main>
@@ -597,25 +597,6 @@
       
       // Setup user dropdown functionality
       setupUserDropdown();
-      
-      // Performance metrics (development only)
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        const loadTime = performance.now();
-        console.log(`⚡ DomiFlash loaded in ${Math.round(loadTime)}ms`);
-        
-        // Show performance indicator
-        setTimeout(() => {
-          const perfIndicator = document.createElement('div');
-          perfIndicator.className = 'fixed bottom-4 left-4 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium z-40';
-          perfIndicator.textContent = `⚡ ${Math.round(loadTime)}ms`;
-          document.body.appendChild(perfIndicator);
-          
-          setTimeout(() => {
-            perfIndicator.style.opacity = '0';
-            setTimeout(() => perfIndicator.remove(), 300);
-          }, 3000);
-        }, 500);
-      }
       
       // Setup critical error handling
       window.addEventListener('error', (e) => {
