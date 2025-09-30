@@ -4,4 +4,5 @@ Flask-Bcrypt
 Flask-Session
 python-dotenv
 Flask-WTF
-flask-session
+waitress
+pymysql
