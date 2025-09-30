@@ -20,7 +20,7 @@
 </section>
 
 <!-- Barra de búsqueda y filtros -->
-<section class="bg-white shadow-sm border-b py-6">
+<section class="dark-bg dark-border-b py-6">
   <div class="container mx-auto px-6">
     <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
       <!-- Búsqueda -->
@@ -29,8 +29,8 @@
           <input type="text" 
                  id="search-restaurants"
                  placeholder="Buscar restaurantes o comida..." 
-                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-domi-orange focus:border-transparent">
-          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                 class="input pl-10">
+          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 dark-text-secondary">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
@@ -59,8 +59,8 @@
       
       <!-- Ordenar -->
       <div class="flex items-center gap-2">
-        <span class="text-gray-600 text-sm font-medium">Ordenar:</span>
-        <select id="sort-restaurants" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-domi-orange">
+        <span class="dark-text-secondary text-sm font-medium">Ordenar:</span>
+        <select id="sort-restaurants" class="input text-sm">
           <option value="popular">Más Popular</option>
           <option value="rating">Mejor Calificados</option>
           <option value="delivery">Tiempo de Entrega</option>
@@ -72,12 +72,12 @@
 </section>
 
 <!-- Grid de restaurantes -->
-<section class="py-12 bg-gray-50">
+<section class="py-12 dark-bg">
   <div class="container mx-auto px-6">
     <!-- Contador de resultados -->
     <div class="mb-8">
-      <p class="text-gray-600">
-        <span class="font-semibold text-domi-dark" id="results-count">{{ restaurantes|length }}</span> 
+      <p class="dark-text-secondary">
+        <span class="font-semibold dark-text" id="results-count">{{ restaurantes|length }}</span> 
         restaurantes encontrados
       </p>
     </div>
@@ -85,7 +85,7 @@
     <!-- Grid responsivo -->
     <div id="restaurants-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {% for idres, restaurante in restaurantes.items() %}
-      <div class="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+      <div class="restaurant-card dark-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
            data-restaurant-id="{{ idres }}"
            data-category="rapida">
         <!-- Imagen del restaurante -->

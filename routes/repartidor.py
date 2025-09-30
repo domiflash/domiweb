@@ -87,7 +87,6 @@ def listar_pedidos():
         repartidor = cursor.fetchone()
     
     idrep = repartidor['idrep']
-    print(f"DEBUG: Repartidor ID: {idrep}")
     
     # Pedidos asignados al repartidor
     cursor.execute("""
@@ -103,7 +102,6 @@ def listar_pedidos():
         ORDER BY p.fecha_creacion DESC
     """, (idrep,))
     pedidos_asignados = cursor.fetchall()
-    print(f"DEBUG: Pedidos asignados: {len(pedidos_asignados)}")
     
     # Pedidos disponibles para asignar (estado pendiente, aceptado o preparando, sin repartidor)
     cursor.execute("""
@@ -119,9 +117,6 @@ def listar_pedidos():
         ORDER BY p.fecha_creacion ASC
     """)
     pedidos_disponibles = cursor.fetchall()
-    print(f"DEBUG: Pedidos disponibles: {len(pedidos_disponibles)}")
-    for pedido in pedidos_disponibles:
-        print(f"DEBUG: Pedido {pedido['idped']} - Estado: {pedido['estped']} - Cliente: {pedido['cliente']}")
     
     return render_template("repartidor/pedidos.html", 
                          pedidos_asignados=pedidos_asignados,

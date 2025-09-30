@@ -1,33 +1,132 @@
 {% extends "base.html" %}
 
+{% block title %}Mi Perfil Repartidor - DomiFlash{% endblock %}
+
 {% block content %}
-<div class="container mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-    <h1 class="text-2xl font-bold text-center mb-6">Perfil del Repartidor</h1>
-    <form method="POST" action="{{ url_for('repartidor.perfil') }}" class="space-y-4">
-        <div class="">
-            <label for="nomrep" class="block text-sm font-medium text-gray-700">Nombre del Repartidor</label>
-            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
-                   id="nomrep" name="nomrep" value="{{ repartidor.nomrep if repartidor else '' }}" required>
-        </div>
-        <div class="">
-            <label for="vehrep" class="block text-sm font-medium text-gray-700">Vehículo</label>
-            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
-                   id="vehrep" name="vehrep" value="{{ repartidor.vehrep if repartidor else '' }}" 
-                   placeholder="Ej: Moto Yamaha FZ, Bicicleta, etc." required>
-        </div>
-        <div class="">
-            <label class="block text-sm font-medium text-gray-700">Estado</label>
-            <span class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if repartidor and repartidor.estrep == 'activo' %}bg-green-100 text-green-800
-                {% else %}bg-red-100 text-red-800{% endif %}">
-                {{ repartidor.estrep|title if repartidor else 'Activo' }}
-            </span>
-        </div>
-        <div class="text-center">
-            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                Actualizar Perfil
+<!-- Header del perfil -->
+<section class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-12">
+  <div class="container mx-auto px-6">
+    <div class="text-center">
+      <div class="mx-auto w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-4xl mb-4">
+        👨‍💼
+      </div>
+      <h1 class="text-4xl font-bold mb-2">Mi Perfil Repartidor</h1>
+      <p class="text-purple-100">Actualiza tu información de entrega</p>
+    </div>
+  </div>
+</section>
+
+<!-- Contenido del perfil -->
+<section class="py-12 dark-bg min-h-screen">
+  <div class="container mx-auto px-6">
+    <div class="max-w-2xl mx-auto">
+      <!-- Tarjeta principal del perfil -->
+      <div class="dark-card p-8">
+        <form method="POST" action="{{ url_for('repartidor.perfil') }}" class="space-y-6">
+          <div>
+            <label for="nomrep" class="block text-sm font-medium dark-text mb-2">
+              📝 Nombre del Repartidor
+            </label>
+            <input type="text" 
+                   id="nomrep" 
+                   name="nomrep" 
+                   value="{{ repartidor.nomrep if repartidor else '' }}" 
+                   class="input"
+                   placeholder="Tu nombre completo como repartidor"
+                   required>
+            <p class="text-sm dark-text-secondary mt-1">Este nombre aparecerá en los pedidos asignados</p>
+          </div>
+          
+          <div>
+            <label for="vehrep" class="block text-sm font-medium dark-text mb-2">
+              🚚 Vehículo de Entrega
+            </label>
+            <input type="text" 
+                   id="vehrep" 
+                   name="vehrep" 
+                   value="{{ repartidor.vehrep if repartidor else '' }}" 
+                   class="input"
+                   placeholder="Ej: Moto Yamaha FZ, Bicicleta, Carro, etc."
+                   required>
+            <p class="text-sm dark-text-secondary mt-1">Especifica el tipo y modelo de tu vehículo</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">
+              🟢 Estado Actual
+            </label>
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
+                {% if repartidor and repartidor.estrep == 'activo' %}
+                  bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                {% else %}
+                  bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                {% endif %}">
+                {% if repartidor and repartidor.estrep == 'activo' %}
+                  ✓ {{ repartidor.estrep|title }}
+                {% else %}
+                  ⚠️ {{ repartidor.estrep|title if repartidor else 'Activo' }}
+                {% endif %}
+              </span>
+              <div class="text-sm dark-text-secondary">
+                {% if repartidor and repartidor.estrep == 'activo' %}
+                  Listo para recibir pedidos
+                {% else %}
+                  No disponible para entregas
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex gap-4 pt-6">
+            <button type="submit" class="btn-primary flex-1">
+              💾 Actualizar Perfil
             </button>
+            <a href="{{ url_for('repartidor.dashboard') }}" class="btn-secondary flex-1 text-center">
+              ← Volver al Dashboard
+            </a>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Estadísticas del repartidor -->
+      <div class="dark-card p-6 mt-6">
+        <h3 class="text-lg font-semibold dark-text mb-4">📊 Estadísticas Rápidas</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center p-4 dark-border rounded-lg">
+            <div class="text-2xl font-bold text-green-500">0</div>
+            <div class="text-sm dark-text-secondary">Entregas Completadas</div>
+          </div>
+          <div class="text-center p-4 dark-border rounded-lg">
+            <div class="text-2xl font-bold text-blue-500">⭐⭐⭐⭐⭐</div>
+            <div class="text-sm dark-text-secondary">Calificación Promedio</div>
+          </div>
+          <div class="text-center p-4 dark-border rounded-lg">
+            <div class="text-2xl font-bold text-purple-500">$0</div>
+            <div class="text-sm dark-text-secondary">Ingresos Totales</div>
+          </div>
         </div>
-    </form>
-</div>
+      </div>
+      
+      <!-- Información adicional -->
+      <div class="dark-card p-6 mt-6">
+        <h3 class="text-lg font-semibold dark-text mb-4">📝 Información Importante</h3>
+        <div class="space-y-3 text-sm dark-text-secondary">
+          <div class="flex items-start gap-3">
+            <span class="text-green-500">✓</span>
+            <span>Mantén tu información de vehículo actualizada para mejor servicio</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-blue-500">📱</span>
+            <span>Asegúrate de tener tu teléfono disponible durante las entregas</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-yellow-500">⚡</span>
+            <span>Cambia tu estado a "inactivo" cuando no estés disponible</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
