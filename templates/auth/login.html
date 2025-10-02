@@ -99,7 +99,13 @@
       </form>
       
       <!-- Enlaces adicionales -->
-      <div class="mt-6 text-center">
+      <div class="mt-6 text-center space-y-3">
+        <div>
+          <a href="{{ url_for('auth.forgot_password') }}" 
+             class="text-domi-orange hover:text-domi-red font-medium transition-colors text-sm">
+            🔑 ¿Olvidaste tu contraseña?
+          </a>
+        </div>
         <p class="dark-text-secondary text-sm">
           ¿No tienes cuenta?
           <a href="{{ url_for('auth.register') }}" 
