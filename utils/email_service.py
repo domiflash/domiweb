@@ -19,7 +19,7 @@ class EmailService:
     def _get_sender_email():
         """Obtiene el email remitente, con fallback a variables de entorno"""
         try:
-            return current_app.config['MAIL_DEFAULT_SENDER']
+            return current_app.config.get('MAIL_DEFAULT_SENDER') or os.getenv('MAIL_DEFAULT_SENDER', 'brayanji890@gmail.com')
         except (RuntimeError, KeyError):
             # Fallback si no hay contexto de Flask
             return os.getenv('MAIL_DEFAULT_SENDER', 'brayanji890@gmail.com')
@@ -197,7 +197,7 @@ class EmailService:
             msg = Message(
                 subject="🎉 ¡Bienvenido a DomiFlash!",
                 recipients=[email],
-                sender=current_app.config['MAIL_DEFAULT_SENDER']
+                sender=EmailService._get_sender_email()
             )
             
             msg.body = f"""
@@ -226,7 +226,7 @@ class EmailService:
             msg = Message(
                 subject=f"📦 Confirmación de Pedido #{order_id} - DomiFlash",
                 recipients=[email],
-                sender=current_app.config['MAIL_DEFAULT_SENDER']
+                sender=EmailService._get_sender_email()
             )
             
             msg.body = f"""

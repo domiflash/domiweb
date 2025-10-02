@@ -24,6 +24,15 @@ def create_app():
     app.config['DB_USER'] = os.getenv('DB_USER')
     app.config['DB_PASSWORD'] = os.getenv('DB_PASSWORD')
     app.config['DB_NAME'] = os.getenv('DB_NAME')
+    
+    # Configurar Flask-Mail
+    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', '587'))
+    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+    app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False').lower() == 'true'
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
     # Conexión a MariaDB con pymysql
     app.db = pymysql.connect(
@@ -83,4 +92,7 @@ if __name__ == "__main__":
         from waitress import serve
         print(f"🚀 Modo producción: Waitress corriendo en http://127.0.0.1:{puerto}")
         serve(app, host="127.0.0.1", port=puerto)
+else:
+    # Para importaciones desde otros módulos
+    app = create_app()
 
