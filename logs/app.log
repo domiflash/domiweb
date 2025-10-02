@@ -1,6 +1,0 @@
-ERROR:root:\u274c Error de conexión a MariaDB: Working outside of application context.
-
-This typically means that you attempted to use functionality that needed
-the current application. To solve this, set up an application context
-with app.app_context(). See the documentation for more information.
-INFO:root:\u2705 Conexión a MariaDB OK
