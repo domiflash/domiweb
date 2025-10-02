@@ -1,89 +1,130 @@
 {% extends "base.html" %}
 
+{% block title %}¡Pago Exitoso! - DomiFlash{% endblock %}
+
 {% block content %}
-<div class="container mx-auto p-6 max-w-md">
-    <div class="bg-white shadow-lg rounded-lg p-8 text-center">
-        <div class="mb-6">
-            <div class="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
+<div class="min-h-screen dark-bg py-12">
+  <div class="container mx-auto px-6 max-w-2xl">
+    <!-- Card principal -->
+    <div class="dark-card shadow-2xl rounded-3xl overflow-hidden">
+      <!-- Header con gradiente -->
+      <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-8 text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-white bg-opacity-20 rounded-full mb-6">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">¡Pago Exitoso!</h1>
+        <p class="text-green-100 text-lg">Tu pedido ha sido procesado correctamente</p>
+      </div>
+      
+      <div class="p-8">
+        <!-- Detalles del pago -->
+        <div class="dark-card bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8">
+          <h3 class="text-xl font-bold dark-text mb-4 flex items-center gap-2">
+            <span>📋</span> Detalles del Pago
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-2 border-b dark-border">
+                <span class="dark-text-secondary">Pedido:</span>
+                <span class="font-mono font-bold dark-text">#{{ pedido_id }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b dark-border">
+                <span class="dark-text-secondary">Método:</span>
+                <span class="capitalize font-semibold dark-text">{{ metodo_pago }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="dark-text-secondary">Monto:</span>
+                <span class="text-2xl font-bold text-green-600">${{ monto }}</span>
+              </div>
             </div>
-            <h1 class="text-2xl font-bold text-green-600 mb-2">¡Pago Procesado!</h1>
-            <p class="text-gray-600">Simulación de pago completada exitosamente</p>
+            
+            <!-- Información de entrega -->
+            {% if session.ultimo_pedido %}
+            <div class="space-y-3">
+              {% if session.ultimo_pedido.tiempo_estimado %}
+              <div class="flex justify-between items-center py-2 border-b dark-border">
+                <span class="dark-text-secondary">Tiempo estimado:</span>
+                <span class="font-bold text-domi-orange">{{ session.ultimo_pedido.tiempo_estimado }} min</span>
+              </div>
+              {% endif %}
+              
+              {% if session.ultimo_pedido.hora_estimada %}
+              <div class="flex justify-between items-center py-2 border-b dark-border">
+                <span class="dark-text-secondary">Llegada aprox.:</span>
+                <span class="font-semibold dark-text">{{ session.ultimo_pedido.hora_estimada }}</span>
+              </div>
+              {% endif %}
+              
+              {% if session.ultimo_pedido.restaurante %}
+              <div class="flex justify-between items-center py-2">
+                <span class="dark-text-secondary">Restaurante:</span>
+                <span class="font-semibold dark-text">{{ session.ultimo_pedido.restaurante }}</span>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
         </div>
         
-        <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-            <h3 class="font-semibold mb-2">Detalles del Pago</h3>
-            <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                    <span>Pedido:</span>
-                    <span class="font-mono">#{{ pedido_id }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Método:</span>
-                    <span class="capitalize">{{ metodo_pago }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Monto:</span>
-                    <span class="font-bold text-green-600">${{ monto }}</span>
-                </div>
+        <!-- Estado del pedido -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 border-l-4 border-blue-400 rounded-r-xl p-6 mb-8">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-blue-800 dark:text-blue-200 mb-1">🔄 Estado del Pedido</h3>
+              <p class="text-blue-700 dark:text-blue-300 text-sm">Tu pedido está siendo procesado</p>
             </div>
+            <div class="text-right">
+              <span id="estado-pago" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                🔄 Procesando...
+              </span>
+            </div>
+          </div>
         </div>
         
-        <!-- Información de tiempo estimado -->
-        {% if session.ultimo_pedido %}
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
-            <h3 class="font-semibold text-blue-800 mb-2">🕐 Información de Entrega</h3>
-            <div class="space-y-2 text-sm">
-                {% if session.ultimo_pedido.tiempo_estimado %}
-                <div class="flex justify-between">
-                    <span>Tiempo estimado:</span>
-                    <span class="font-bold text-blue-600">{{ session.ultimo_pedido.tiempo_estimado }} minutos</span>
-                </div>
-                {% endif %}
-                
-                {% if session.ultimo_pedido.hora_estimada %}
-                <div class="flex justify-between">
-                    <span>Llegada aproximada:</span>
-                    <span class="font-semibold">{{ session.ultimo_pedido.hora_estimada }}</span>
-                </div>
-                {% endif %}
-                
-                {% if session.ultimo_pedido.distancia %}
-                <div class="flex justify-between">
-                    <span>Distancia:</span>
-                    <span>{{ session.ultimo_pedido.distancia }} km</span>
-                </div>
-                {% endif %}
-                
-                {% if session.ultimo_pedido.restaurante %}
-                <div class="flex justify-between">
-                    <span>Restaurante:</span>
-                    <span class="font-semibold">{{ session.ultimo_pedido.restaurante }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-                <div class="flex justify-between">
-                    <span>Estado:</span>
-                    <span class="text-green-600">Procesando...</span>
-                </div>
-            </div>
+        <!-- Acciones -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <a href="{{ url_for('cliente.mis_pedidos') }}" 
+             class="btn-primary text-center">
+            <span class="flex items-center justify-center gap-2">
+              <span>📋</span>
+              <span>Ver Mis Pedidos</span>
+            </span>
+          </a>
+          
+          <a href="{{ url_for('cliente.menu') }}" 
+             class="btn-secondary text-center">
+            <span class="flex items-center justify-center gap-2">
+              <span>🛒</span>
+              <span>Seguir Comprando</span>
+            </span>
+          </a>
+          
+          <button onclick="generatePDF()" 
+                  class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105">
+            <span class="flex items-center justify-center gap-2">
+              <span>📄</span>
+              <span>Descargar Factura</span>
+            </span>
+          </button>
         </div>
         
-        <div class="space-y-3">
-            <a href="{{ url_for('cliente.mis_pedidos') }}" 
-               class="block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-                Ver Mis Pedidos
-            </a>
-            <a href="{{ url_for('cliente.menu') }}" 
-               class="block bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300">
-                Continuar Comprando
-            </a>
+        <!-- Información adicional -->
+        <div class="text-center border-t dark-border pt-6">
+          <p class="dark-text-secondary text-sm mb-2">
+            <span class="inline-flex items-center gap-1">
+              <span>🔒</span>
+              <span>Pago procesado de forma segura</span>
+            </span>
+          </p>
+          <p class="dark-text-secondary text-xs">
+            Recibirás notificaciones sobre el estado de tu pedido
+          </p>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
@@ -91,11 +132,84 @@
 setTimeout(() => {
     fetch('/cliente/actualizar-pago/{{ pedido_id }}', { method: 'POST' })
         .then(() => {
-            const estadoEl = document.querySelector('.text-green-600:last-child');
-            if (estadoEl && estadoEl.textContent === 'Procesando...') {
-                estadoEl.textContent = 'Pagado ✓';
+            const estadoEl = document.getElementById('estado-pago');
+            if (estadoEl && estadoEl.textContent.includes('Procesando')) {
+                estadoEl.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+                estadoEl.innerHTML = '✓ Pagado';
             }
-        });
+        })
+        .catch(error => console.log('Error updating payment status:', error));
 }, 3000);
+
+// Función para generar PDF de la factura
+function generatePDF() {
+    // Crear contenido de la factura
+    const facturaContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; border-bottom: 2px solid #FF6B35; padding-bottom: 20px; margin-bottom: 20px;">
+                <h1 style="color: #FF6B35; margin: 0;">🍕 DomiFlash</h1>
+                <p style="margin: 5px 0; color: #666;">Factura de Compra</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h2 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px;">Detalles del Pedido</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><strong>Número de Pedido:</strong></td><td style="text-align: right;">#{{ pedido_id }}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><strong>Fecha:</strong></td><td style="text-align: right;">${new Date().toLocaleDateString('es-CO')}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><strong>Método de Pago:</strong></td><td style="text-align: right; text-transform: capitalize;">{{ metodo_pago }}</td></tr>
+                    {% if session.ultimo_pedido and session.ultimo_pedido.restaurante %}
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><strong>Restaurante:</strong></td><td style="text-align: right;">{{ session.ultimo_pedido.restaurante }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h2 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px;">Resumen de Pago</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">Subtotal:</td><td style="text-align: right;">${{ monto }}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">Domicilio:</td><td style="text-align: right; color: #28a745;">GRATIS</td></tr>
+                    <tr style="background-color: #f8f9fa;"><td style="padding: 12px 0; font-weight: bold; font-size: 18px;">Total:</td><td style="text-align: right; font-weight: bold; font-size: 18px; color: #28a745;">${{ monto }}</td></tr>
+                </table>
+            </div>
+            
+            {% if session.ultimo_pedido and session.ultimo_pedido.tiempo_estimado %}
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 10px 0; color: #856404;">⏰ Información de Entrega</h3>
+                <p style="margin: 0; color: #856404;">Tiempo estimado: {{ session.ultimo_pedido.tiempo_estimado }} minutos</p>
+                {% if session.ultimo_pedido.hora_estimada %}
+                <p style="margin: 5px 0 0 0; color: #856404;">Llegada aproximada: {{ session.ultimo_pedido.hora_estimada }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div style="text-align: center; border-top: 1px solid #eee; padding-top: 20px; color: #666; font-size: 12px;">
+                <p>¡Gracias por usar DomiFlash!</p>
+                <p>Esta es una factura generada automáticamente.</p>
+            </div>
+        </div>
+    `;
+    
+    // Crear ventana para imprimir
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Factura DomiFlash - Pedido #{{ pedido_id }}</title>
+            <meta charset="utf-8">
+        </head>
+        <body>
+            ${facturaContent}
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(() => window.close(), 1000);
+                }
+            </scr` + `ipt>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
 </script>
 {% endblock %}

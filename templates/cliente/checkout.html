@@ -21,28 +21,28 @@
 </section>
 
 <!-- Progreso del checkout -->
-<section class="bg-white py-6 shadow-sm">
+<section class="dark-bg-secondary py-6 shadow-sm dark-border-b">
   <div class="container mx-auto px-6">
     <div class="flex items-center justify-center space-x-8">
       <div class="flex items-center text-green-600">
         <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
-        <span class="ml-2 font-medium">Carrito</span>
+        <span class="ml-2 font-medium dark-text">Carrito</span>
       </div>
       <div class="w-16 h-0.5 bg-domi-orange"></div>
       <div class="flex items-center text-domi-orange">
         <div class="w-8 h-8 bg-domi-orange text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-        <span class="ml-2 font-medium">Checkout</span>
+        <span class="ml-2 font-medium dark-text">Checkout</span>
       </div>
-      <div class="w-16 h-0.5 bg-gray-300"></div>
+      <div class="w-16 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
       <div class="flex items-center text-gray-400">
-        <div class="w-8 h-8 bg-gray-300 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-        <span class="ml-2 font-medium">Confirmación</span>
+        <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+        <span class="ml-2 font-medium dark-text-secondary">Confirmación</span>
       </div>
     </div>
   </div>
 </section>
 
-<div class="py-12 bg-gray-50">
+<div class="py-12 dark-bg">
   <div class="container mx-auto px-6">
     
     <!-- Alerta de múltiples restaurantes -->
@@ -249,26 +249,124 @@
 </div>
 
 <style>
+/* Estilos para métodos de pago mejorados */
 .payment-option {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 
 .payment-card {
-  @apply border-2 border-gray-200 rounded-lg p-4 flex items-center space-x-3 transition-all duration-200 hover:border-domi-orange hover:bg-domi-gradient-light;
+  @apply flex items-center p-4 border-3 border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300;
+  @apply hover:border-domi-orange hover:shadow-lg hover:scale-102;
+  @apply dark-bg-secondary;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .payment-option input:checked + .payment-card {
-  @apply border-domi-orange bg-domi-gradient-light ring-2 ring-domi-orange ring-opacity-50;
+  @apply border-domi-orange bg-domi-orange bg-opacity-15 dark:bg-domi-orange dark:bg-opacity-25;
+  @apply shadow-xl transform scale-105;
+  border-width: 4px !important;
+  box-shadow: 0 8px 25px rgba(255, 165, 0, 0.3), 0 0 0 2px rgba(255, 165, 0, 0.2);
+}
+
+.payment-option input:checked + .payment-card h4 {
+  @apply text-domi-orange;
 }
 
 .payment-icon {
-  @apply text-2xl w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full;
+  @apply text-2xl mr-4 transition-all duration-300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: rgba(255, 165, 0, 0.1);
+  border-radius: 50%;
 }
 
 .payment-option input:checked + .payment-card .payment-icon {
-  @apply bg-domi-orange text-white;
+  @apply transform scale-110;
+  background: rgba(255, 165, 0, 0.2);
+  box-shadow: 0 0 15px rgba(255, 165, 0, 0.4);
+}
+
+.payment-card h4 {
+  @apply dark-text font-semibold;
+}
+
+.payment-card p {
+  @apply dark-text-secondary;
+}
+
+/* Dark mode para el formulario */
+.checkout-form textarea {
+  @apply dark-bg dark-border dark-text;
+}
+
+.checkout-form textarea:focus {
+  @apply ring-domi-orange border-domi-orange;
+}
+
+/* Mejorar productos en checkout */
+.checkout-form .bg-gray-50 {
+  @apply dark-bg-secondary;
+}
+
+.checkout-form .hover\:bg-gray-100:hover {
+  @apply dark:hover:bg-gray-600;
+}
+
+.checkout-form .text-domi-dark {
+  @apply dark-text;
+}
+
+.checkout-form .text-gray-600 {
+  @apply dark-text-secondary;
+}
+
+/* Mejorar sección de total */
+.checkout-form .bg-domi-gradient-light {
+  @apply dark:bg-gradient-to-r dark:from-domi-orange dark:from-opacity-20 dark:to-domi-red dark:to-opacity-20;
 }
 </style>
+
+<script>
+// Mejorar selección de métodos de pago
+document.addEventListener('DOMContentLoaded', function() {
+  const paymentOptions = document.querySelectorAll('.payment-option');
+  
+  paymentOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      // Remover selección anterior
+      paymentOptions.forEach(opt => {
+        const radio = opt.querySelector('input[type="radio"]');
+        radio.checked = false;
+      });
+      
+      // Seleccionar actual
+      const radio = this.querySelector('input[type="radio"]');
+      radio.checked = true;
+      
+      // Animación de confirmación
+      const card = this.querySelector('.payment-card');
+      card.style.transform = 'scale(1.05)';
+      setTimeout(() => {
+        card.style.transform = '';
+      }, 200);
+    });
+  });
+  
+  // Validación antes de enviar
+  const form = document.querySelector('.checkout-form');
+  form.addEventListener('submit', function(e) {
+    const selectedPayment = document.querySelector('input[name="metodo_pago"]:checked');
+    if (!selectedPayment) {
+      e.preventDefault();
+      alert('¡Por favor selecciona un método de pago!');
+      return false;
+    }
+  });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

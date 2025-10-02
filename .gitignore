@@ -1,5 +1,89 @@
+# Entornos virtuales de Python
 venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Archivos compilados de Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+
+# Variables de entorno y configuración
 .env
+.env.local
+.env.development
+.env.test
+.env.production
+config.local.py
+
+# Sesiones de Flask
 flask_session/
+sessions/
+instance/
+
+# Logs
+logs/
+*.log
+log/
+
+# Bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentos y reportes (archivos temporales de desarrollo)
+docs/reportes/
+temp/
+*.tmp
+*.temp
+
+# Archivos de test y desarrollo
+test_*.py
+TEST_*
+*_test.py
+*_testing.py
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de cobertura
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Archivos de distribución
+build/
+dist/
+*.egg-info/
+
+# Archivos de respaldo
+*.bak
+*.backup
+*.old
+
+# Uploads y archivos de usuario
+uploads/
+media/user_uploads/
+static/uploads/
+
+# Certificados y claves
+*.pem
+*.key
+*.crt
+*.p12
+
+# Archivos específicos del proyecto
+fix_*.sql
+REPORTE_*.md
+RESUMEN_*.md

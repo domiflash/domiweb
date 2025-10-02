@@ -115,7 +115,7 @@ def listar_pedidos():
     cursor = current_app.db.cursor()
     cursor.execute(
         """
-        SELECT p.idped, u.nomusu AS cliente, u.dirusu AS direccion, 
+        SELECT p.idped, u.nomusu AS cliente, 
                p.estped, p.fecha_creacion, p.fecha_actualizacion,
                COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) AS total
         FROM pedidos p
@@ -123,7 +123,7 @@ def listar_pedidos():
         LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         JOIN restaurantes r ON p.idres = r.idres
         WHERE r.idusu = %s
-        GROUP BY p.idped, u.nomusu, u.dirusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
+        GROUP BY p.idped, u.nomusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
         ORDER BY p.fecha_creacion DESC
         """,
         (usuario_id,)
@@ -140,19 +140,20 @@ def detalle_pedido(idped):
 
     # Info general del pedido
     cursor.execute("""
-        SELECT p.idped, u.nomusu AS cliente, u.dirusu AS direccion, 
+        SELECT p.idped, u.nomusu AS cliente, 
                p.estped, p.fecha_creacion, p.fecha_actualizacion,
                COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) AS total
         FROM pedidos p
         JOIN usuarios u ON p.idusu = u.idusu
         LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         WHERE p.idped = %s
-        GROUP BY p.idped, u.nomusu, u.dirusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
+        GROUP BY p.idped, u.nomusu, p.estped, p.fecha_creacion, p.fecha_actualizacion
     """, (idped,))
     pedido = cursor.fetchone()
 
     if not pedido:
-        return jsonify({"msg": "Pedido no encontrado"}), 404
+        flash("Pedido no encontrado", "error")
+        return redirect(url_for("restaurante.listar_pedidos"))
 
     # Productos del pedido
     cursor.execute("""

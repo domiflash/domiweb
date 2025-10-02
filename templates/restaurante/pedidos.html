@@ -47,7 +47,7 @@
               <tr>
                 <th class="px-6 py-4 text-left text-white font-semibold">ID</th>
                 <th class="px-6 py-4 text-left text-white font-semibold">Cliente</th>
-                <th class="px-6 py-4 text-left text-white font-semibold">Dirección</th>
+                <th class="px-6 py-4 text-left text-white font-semibold">Tipo de Entrega</th>
                 <th class="px-6 py-4 text-left text-white font-semibold">Total</th>
                 <th class="px-6 py-4 text-center text-white font-semibold">Estado</th>
                 <th class="px-6 py-4 text-center text-white font-semibold">Acciones</th>
@@ -55,37 +55,41 @@
             </thead>
             <tbody>
               {% for pedido in pedidos %}
-              <tr class="border-b dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors pedido-row" data-estado="{{ pedido.estado }}">
+              <tr class="border-b dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors pedido-row" data-estado="{{ pedido.estped }}">
                 <td class="px-6 py-4">
                   <div class="text-sm font-semibold dark-text">#{{ pedido.idped }}</div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ pedido.fecha }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') if pedido.fecha_creacion else 'Sin fecha' }}</div>
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center">
                     <div class="w-10 h-10 bg-domi-orange bg-opacity-20 rounded-full flex items-center justify-center text-domi-orange font-bold mr-3">
-                      {{ pedido.cliente.nombre[0].upper() if pedido.cliente.nombre else 'U' }}
+                      {{ pedido.cliente[0].upper() if pedido.cliente else 'U' }}
                     </div>
                     <div>
-                      <div class="text-sm font-medium dark-text">{{ pedido.cliente.nombre or 'Cliente' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ pedido.cliente.telefono or 'Sin teléfono' }}</div>
+                      <div class="text-sm font-medium dark-text">{{ pedido.cliente or 'Cliente' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Cliente registrado</div>
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-4">
-                  <div class="text-sm dark-text max-w-xs truncate">{{ pedido.cliente.direccion or 'Dirección no disponible' }}</div>
+                  <div class="text-sm dark-text">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      📍 Entrega a domicilio
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4">
                   <div class="text-lg font-bold text-green-600 dark:text-green-400">${{ "{:,.0f}".format(pedido.total) }}</div>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <span class="estado-badge estado-{{ pedido.estado }}">
-                    {% if pedido.estado == 'pendiente' %}⏳ Pendiente
-                    {% elif pedido.estado == 'aceptado' %}✅ Aceptado
-                    {% elif pedido.estado == 'preparando' %}👨‍🍳 Preparando
-                    {% elif pedido.estado == 'en_camino' %}🚚 En Camino
-                    {% elif pedido.estado == 'entregado' %}✅ Entregado
-                    {% elif pedido.estado == 'cancelado' %}❌ Cancelado
-                    {% else %}{{ pedido.estado }}
+                  <span class="estado-badge estado-{{ pedido.estped }}">
+                    {% if pedido.estped == 'pendiente' %}⏳ Pendiente
+                    {% elif pedido.estped == 'aceptado' %}✅ Aceptado
+                    {% elif pedido.estped == 'preparando' %}👨‍🍳 Preparando
+                    {% elif pedido.estped == 'en_camino' %}🚚 En Camino
+                    {% elif pedido.estped == 'entregado' %}✅ Entregado
+                    {% elif pedido.estped == 'cancelado' %}❌ Cancelado
+                    {% else %}{{ pedido.estped }}
                     {% endif %}
                   </span>
                 </td>
@@ -95,8 +99,8 @@
                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
                       👁️ Ver
                     </a>
-                    {% if pedido.estado in ['pendiente', 'aceptado', 'preparando'] %}
-                    <button onclick="cambiarEstado({{ pedido.idped }}, '{{ pedido.estado }}')"
+                    {% if pedido.estped in ['pendiente', 'aceptado', 'preparando'] %}
+                    <button onclick="cambiarEstado({{ pedido.idped }}, '{{ pedido.estped }}')"
                             class="bg-domi-orange hover:bg-orange-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
                       📝 Estado
                     </button>

@@ -122,10 +122,10 @@
         <!-- Contenido -->
         <div class="p-6">
           <div class="mb-4">
-            <h3 class="text-xl font-bold text-domi-dark mb-2 group-hover:text-domi-orange transition-colors">
+            <h3 class="text-xl font-bold dark-text mb-2 group-hover:text-domi-orange transition-colors">
               {{ restaurante.nombre }}
             </h3>
-            <p class="text-gray-600 text-sm mb-3">
+            <p class="dark-text-secondary text-sm mb-3">
               Cocina {{ ['tradicional', 'rápida', 'gourmet', 'casera'][loop.index0 % 4] }} • 
               ${{ 15000 + (loop.index % 5) * 5000 }} promedio
             </p>
