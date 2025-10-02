@@ -216,7 +216,39 @@ def checkout():
             flash("Debe seleccionar un restaurante", "danger")
             return redirect(url_for("cliente.checkout"))
         
+        # 🔥 VALIDAR QUE HAY PRODUCTOS EN EL CARRITO ANTES DE PROCEDER
+        cursor.execute("""
+            SELECT COUNT(*) as count_items
+            FROM carritos c
+            WHERE c.idusu = %s
+        """, (user_id,))
+        carrito_check = cursor.fetchone()
+        
+        if not carrito_check or carrito_check['count_items'] == 0:
+            flash("Tu carrito está vacío. Agrega productos antes de continuar.", "warning")
+            return redirect(url_for("cliente.menu"))
+        
         try:
+            # 🔥 CALCULAR TOTAL ANTES DE CREAR EL PEDIDO
+            # (porque el carrito se vacía automáticamente al crear el pedido)
+            cursor.execute("""
+                SELECT COALESCE(SUM(c.canprocar * p.prepro), 0) as total,
+                       COUNT(*) as num_items
+                FROM carritos c
+                JOIN productos p ON c.idpro = p.idpro
+                WHERE c.idusu = %s
+            """, (user_id,))
+            total_result = cursor.fetchone()
+            total = float(total_result['total']) if total_result and total_result['total'] is not None else 0.0
+            num_items = total_result['num_items'] if total_result else 0
+            
+            print(f"🔍 DEBUG - Usuario: {user_id}, Items en carrito: {num_items}, Total calculado: {total}")
+            
+            # Validar que el total no sea 0 (debería haber productos)
+            if total <= 0 or num_items == 0:
+                flash(f"Error: No se pueden procesar pedidos sin productos o con monto 0. Items: {num_items}, Total: {total}", "danger")
+                return redirect(url_for("cliente.checkout"))
+            
             # Usar el procedimiento almacenado para confirmar pedido
             cursor.callproc("confirmar_pedido", (user_id, restaurante_id))
             result = cursor.fetchone()
@@ -224,15 +256,7 @@ def checkout():
             if result:
                 pedido_id = result['id_pedido_creado']
                 
-                # Calcular total del pedido
-                cursor.execute("""
-                    SELECT SUM(cantidad * precio_unitario) as total
-                    FROM detalle_pedidos WHERE idped = %s
-                """, (pedido_id,))
-                total_result = cursor.fetchone()
-                total = total_result['total'] if total_result else 0
-                
-                # Registrar pago
+                # Registrar pago (ahora ya tenemos el total calculado)
                 cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total))
                 current_app.db.commit()
                 
@@ -261,7 +285,7 @@ def checkout():
                     flash(f"¡Pedido realizado con éxito! Total: ${total:.2f}", "success")
                 
                 # Redirigir a página de pago exitoso
-                return redirect(url_for("cliente.pago_exitoso", pedido_id=pedido_id, metodo=metodo_pago, total=total))
+                return redirect(url_for("cliente.pago_exitoso", pedido_id=pedido_id, metodo=metodo_pago, total=f"{total:.2f}"))
                 
         except Exception as e:
             flash(f"Error al procesar pedido: {str(e)}", "danger")
@@ -346,12 +370,18 @@ def pago_exitoso():
     """Página de confirmación de pago exitoso."""
     pedido_id = request.args.get("pedido_id")
     metodo_pago = request.args.get("metodo", "efectivo")
-    monto = request.args.get("total", "0")
+    monto_str = request.args.get("total", "0.00")
+    
+    # Convertir monto a float de forma segura
+    try:
+        monto = float(monto_str)
+    except (ValueError, TypeError):
+        monto = 0.00
     
     return render_template("cliente/pago_exitoso.html", 
                          pedido_id=pedido_id, 
                          metodo_pago=metodo_pago, 
-                         monto=monto)
+                         monto=f"{monto:.2f}")
 
 @cliente_bp.route("/actualizar-pago/<int:pedido_id>", methods=["POST"])
 @login_required
