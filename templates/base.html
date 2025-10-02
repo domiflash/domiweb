@@ -291,7 +291,7 @@
   </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen page-loading transition-all duration-300" id="main-content">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen page-loading transition-all duration-300{% if session.logged_in %} authenticated{% endif %}" id="main-content" {% if session.role %}data-user-role="{{ session.role }}"{% endif %}>
   <!-- Skip Navigation -->
   <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
   
@@ -688,6 +688,31 @@
 
   <!-- JavaScript -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  
+  <!-- 🕐 Sistema de Timeout de Sesión -->
+  {% if session.logged_in %}
+  <script src="{{ url_for('static', filename='js/session-timeout.js') }}"></script>
+  <!-- Indicador de sesión para usuarios autenticados -->
+  <div id="session-indicator" class="fixed bottom-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg session-indicator active z-50">
+    Sesión: Activa
+  </div>
+  <style>
+    .session-indicator.active {
+      background-color: #10B981;
+    }
+    .session-indicator.warning {
+      background-color: #F59E0B;
+      animation: pulse 2s infinite;
+    }
+    .session-indicator.expired {
+      background-color: #EF4444;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+  {% endif %}
   
   <!-- Auto-ocultar notificaciones -->
   <script>

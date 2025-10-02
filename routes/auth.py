@@ -3,6 +3,9 @@ import MySQLdb.cursors
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils.auth_helpers import login_required
 from utils.password_recovery import recovery_manager
+from utils.validation_decorators import validate_form, require_fields
+from utils.input_validator import input_validator
+from utils.session_manager import session_manager, require_active_session
 from datetime import datetime
 import re
 
@@ -66,18 +69,34 @@ def registrar_login_exitoso(email, ip, user_agent):
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
+@validate_form({
+    'nombre': 'name',
+    'email': 'email', 
+    'password': 'password',
+    'direccion': 'address',
+    'rol': 'role'
+})
 def register():
     if request.method == "POST":
-        nombre = request.form["nombre"]
-        email = request.form["email"]
-        password = request.form["password"]
-        direccion = request.form["direccion"]
-        rol = request.form.get("rol", "cliente")  # Default role is 'cliente'
+        # Los datos ya están validados por el decorador
+        nombre = request.validated_data["nombre"]
+        email = request.validated_data["email"]
+        password = request.validated_data["password"]
+        direccion = request.validated_data["direccion"]
+        rol = request.validated_data.get("rol", "cliente")
 
-        hashed_password = generate_password_hash(password)
+        # Verificar si el email ya existe
+        cursor = current_app.db.cursor()
+        cursor.execute("SELECT idusu FROM usuarios WHERE corusu = %s", (email,))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            flash("❌ Este email ya está registrado", "error")
+            cursor.close()
+            return render_template("auth/register.html")
 
         try:
-            cursor = current_app.db.cursor()
+            hashed_password = generate_password_hash(password)
 
             # 👉 Registrar usuario con SP
             cursor.callproc("registrar_usuario", (nombre, email, hashed_password, direccion, rol))
@@ -98,22 +117,27 @@ def register():
 
             cursor.close()
 
-            flash("Usuario registrado exitosamente 🚀", "success")
+            flash("✅ Usuario registrado exitosamente 🚀", "success")
             return redirect(url_for("auth.login"))
 
         except Exception as e:
             import traceback
             print("❌ Error al registrar:", str(e))
-            flash("Error al registrar: " + str(e), "danger")
+            flash(f"❌ Error al registrar: {str(e)}", "danger")
 
     return render_template("auth/register.html")
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@validate_form({
+    'email': 'email',
+    'password': 'password'
+})
 def login():
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+        # Los datos ya están validados por el decorador
+        email = request.validated_data["email"]
+        password = request.validated_data["password"]
         ip_cliente = obtener_ip_cliente()
         user_agent = obtener_user_agent()
 
@@ -138,13 +162,13 @@ def login():
             # Registrar login exitoso y resetear intentos
             registrar_login_exitoso(email, ip_cliente, user_agent)
             
-            # Guardar datos en sesión
-            session["usuario_id"] = user["idusu"]
-            session["rol"] = user["rolusu"]
+            # 🕐 Iniciar sesión con timeout usando el nuevo sistema
+            remember_me = request.form.get('remember_me', False)
+            session_manager.start_session(user["idusu"], user["rolusu"], remember_me)
+            
+            # Guardar datos adicionales en sesión (compatibilidad)
             session["logged_in"] = True
             session["user_name"] = user["nomusu"]
-            session["role"] = user["rolusu"]
-            session["login_time"] = datetime.now().isoformat()  # Para timeout de sesión
     
             flash(f"Bienvenido, {user['nomusu']} 👋", "success")
             return redirect(url_for("auth.role_dashboard"))
@@ -172,9 +196,9 @@ def login():
 
 
 @auth_bp.route("/role_dashboard")
-@login_required
+@require_active_session
 def role_dashboard():
-    rol = session.get("rol")
+    rol = session.get("role", session.get("rol"))  # Compatibilidad con ambos nombres
     if not rol:
         flash("Rol no reconocido", "danger")
         return redirect(url_for("auth.login"))
@@ -184,23 +208,21 @@ def role_dashboard():
 
 @auth_bp.route("/logout")
 def logout():
-    # Limpiar todas las variables de sesión
-    session.clear()
+    # 🕐 Terminar sesión usando el nuevo sistema
+    session_manager.end_session('manual')
     flash("Sesión cerrada correctamente 👋", "info")
     return redirect(url_for("index"))
 
 
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
+@validate_form({
+    'email': 'email'
+})
 def forgot_password():
     """Página para solicitar recuperación de contraseña"""
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        
-        # Validar formato de email
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, email):
-            flash("⚠️ Por favor ingresa un email válido", "warning")
-            return render_template("auth/forgot_password.html")
+        # Los datos ya están validados por el decorador
+        email = request.validated_data["email"]
         
         # Crear token de recuperación y enviar email
         result = recovery_manager.create_recovery_token(email)
@@ -223,6 +245,9 @@ def forgot_password():
 
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+@validate_form({
+    'password': 'password'
+})
 def reset_password(token):
     """Página para resetear contraseña con token"""
     
@@ -234,17 +259,11 @@ def reset_password(token):
         return redirect(url_for('auth.forgot_password'))
     
     if request.method == "POST":
-        new_password = request.form.get("password", "")
+        # Los datos ya están validados por el decorador
+        new_password = request.validated_data["password"]
         confirm_password = request.form.get("confirm_password", "")
         
-        # Validaciones
-        if not new_password or len(new_password) < 6:
-            flash("⚠️ La contraseña debe tener al menos 6 caracteres", "warning")
-            return render_template("auth/reset_password.html", 
-                                 token=token, 
-                                 email=validation['email'],
-                                 time_remaining=validation['time_remaining'])
-        
+        # Validar confirmación de contraseña manualmente
         if new_password != confirm_password:
             flash("⚠️ Las contraseñas no coinciden", "warning")
             return render_template("auth/reset_password.html", 

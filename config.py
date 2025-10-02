@@ -19,6 +19,22 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")  # Tu email
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")  # Contraseña de aplicación
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")  # Email remitente
+    
+    # ⏰ Configuración de Timeout de Sesión
+    SESSION_TIMEOUT_MINUTES = int(os.getenv("SESSION_TIMEOUT_MINUTES", "30"))  # 30 minutos por defecto
+    SESSION_WARNING_MINUTES = int(os.getenv("SESSION_WARNING_MINUTES", "5"))   # Advertencia 5 min antes
+    SESSION_PERMANENT = False  # Las sesiones no son permanentes por defecto
+    SESSION_TYPE = 'filesystem'  # Tipo de almacenamiento de sesión
+    SESSION_FILE_DIR = os.getenv("SESSION_FILE_DIR", "./flask_session")  # Directorio de sesiones
+    
+    # 🔒 Configuración de Seguridad de Sesión
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"  # HTTPS en producción
+    SESSION_COOKIE_HTTPONLY = True  # Prevenir acceso desde JavaScript
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Protección CSRF
+    
+    # 🚫 Límites de Intentos de Login
+    MAX_LOGIN_ATTEMPTS = int(os.getenv("MAX_LOGIN_ATTEMPTS", "5"))  # Máximo 5 intentos
+    LOGIN_ATTEMPT_TIMEOUT_MINUTES = int(os.getenv("LOGIN_ATTEMPT_TIMEOUT_MINUTES", "15"))  # Bloqueo 15 min
 
 # Configuración para mysql-connector-python
 DB_CONFIG = {

@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, current_app, session, flash
 from utils.auth_helpers import login_required, role_required
+from utils.validation_decorators import validate_form, require_fields
+from utils.input_validator import input_validator
 
 restaurante_bp = Blueprint("restaurante", __name__)
 
@@ -34,17 +36,23 @@ def listar_productos():
 @restaurante_bp.route("/productos", methods=["POST"])
 @login_required
 @role_required("restaurante")
+@validate_form({
+    'nompro': 'name',
+    'despro': 'description',
+    'prepro': 'price',
+    'stopro': 'quantity',
+    'idcat': 'numeric'
+})
 def crear_producto():
-    nompro = request.form["nompro"]
-    despro = request.form.get("despro")
-    prepro = request.form["prepro"]
-    stopro = request.form["stopro"]
-    idcat = request.form["idcat"]
-    # idres = 1  # ⚠️ Temporal: debería salir del restaurante logueado
-
+    # Los datos ya están validados por el decorador
+    nompro = request.validated_data["nompro"]
+    despro = request.validated_data.get("despro", "")
+    prepro = request.validated_data["prepro"]
+    stopro = request.validated_data["stopro"]
+    idcat = request.validated_data["idcat"]
 
     # Obtener el idres del restaurante logueado
-    usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
+    usuario_id = session.get("usuario_id")
     cursor = current_app.db.cursor()
     cursor.execute("SELECT idres FROM restaurantes WHERE idusu = %s", (usuario_id,))
     restaurante = cursor.fetchone()

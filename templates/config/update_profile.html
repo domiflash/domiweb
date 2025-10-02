@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Actualizar Perfil - DomiFlash{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">👤 Actualizar Perfil</h1>
+            <p class="mt-2 text-gray-600">Modifica tu información personal</p>
+        </div>
+
+        <!-- Formulario de Perfil -->
+        <div class="bg-white shadow-lg rounded-lg p-8">
+            <form method="POST" class="space-y-6">
+                
+                <!-- Nombre -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                    <input type="text" id="name" name="name" 
+                           value="{{ current_user.name if current_user else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="Juan Pérez">
+                    <p class="mt-1 text-xs text-gray-500">Solo letras y espacios, 2-100 caracteres</p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" 
+                           value="{{ current_user.email if current_user else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="usuario@ejemplo.com">
+                    <p class="mt-1 text-xs text-gray-500">Debe ser un email válido</p>
+                </div>
+
+                <!-- Teléfono -->
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                    <input type="tel" id="phone" name="phone" 
+                           value="{{ current_user.telefono if current_user else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="+57 300 123 4567">
+                    <p class="mt-1 text-xs text-gray-500">Formato internacional válido</p>
+                </div>
+
+                <!-- Dirección (si aplica) -->
+                {% if current_user and current_user.role == 'cliente' %}
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700">Dirección</label>
+                    <input type="text" id="address" name="address" 
+                           value="{{ current_user.direccion if current_user else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="Calle 123 #45-67">
+                    <p class="mt-1 text-xs text-gray-500">Mínimo 5 caracteres, máximo 200</p>
+                </div>
+                {% endif %}
+
+                <!-- Botón -->
+                <div class="flex justify-center">
+                    <button type="submit" 
+                            class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-300">
+                        💾 Actualizar Perfil
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Formulario para Cambiar Contraseña -->
+        <div class="mt-8 bg-white shadow-lg rounded-lg p-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">🔒 Cambiar Contraseña</h2>
+            <form method="POST" action="{{ url_for('config.change_password') }}" class="space-y-6">
+                
+                <!-- Contraseña Actual -->
+                <div>
+                    <label for="current_password" class="block text-sm font-medium text-gray-700">Contraseña Actual</label>
+                    <input type="password" id="current_password" name="current_password" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="Tu contraseña actual">
+                </div>
+
+                <!-- Nueva Contraseña -->
+                <div>
+                    <label for="new_password" class="block text-sm font-medium text-gray-700">Nueva Contraseña</label>
+                    <input type="password" id="new_password" name="new_password" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="Mínimo 6 caracteres">
+                    <p class="mt-1 text-xs text-gray-500">Debe contener mayúscula, minúscula y número</p>
+                </div>
+
+                <!-- Confirmar Contraseña -->
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirm_password" name="confirm_password" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="Repite la nueva contraseña">
+                </div>
+
+                <!-- Botón -->
+                <div class="flex justify-center">
+                    <button type="submit" 
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-300">
+                        🔑 Cambiar Contraseña
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Navegación -->
+        <div class="mt-8 text-center space-x-4">
+            <a href="{{ url_for('auth.role_dashboard') }}" 
+               class="text-orange-600 hover:text-orange-700 font-medium">
+                ← Volver al Dashboard
+            </a>
+            <span class="text-gray-400">|</span>
+            <a href="{{ url_for('config.test_validation') }}" 
+               class="text-blue-600 hover:text-blue-700 font-medium">
+                🔍 Probar Validaciones
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,6 +5,11 @@ from routes.cliente import cliente_bp
 from routes.restaurante import restaurante_bp
 from routes.repartidor import repartidor_bp
 from routes.admin import admin_bp
+from routes.config import config_bp
+from routes.session import session_bp
+from utils.session_manager import session_manager
+from routes.session import session_bp
+from utils.session_manager import session_manager
 import pymysql.cursors  # ✅ usamos pymysql
 from flask_session import Session
 from flask_mail import Mail
@@ -43,14 +48,22 @@ def create_app():
         cursorclass=pymysql.cursors.DictCursor
     )
 
-    # Configurar Flask-Session para sesiones persistentes
-    app.config['SESSION_TYPE'] = 'filesystem'  # Cambiar a 'redis' si se usa Redis
+    # ⏰ Configurar Flask-Session con timeout y seguridad
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SESSION_PERMANENT'] = False
+    app.config['SESSION_FILE_DIR'] = './flask_session'
+    app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutos en segundos
     Session(app)
     
     # Configurar Flask-Mail
     mail = Mail(app)
     app.mail = mail
+    
+    # 🕐 Inicializar gestor de sesiones con timeout
+    session_manager.init_app(app)
 
     # Registrar blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -58,6 +71,8 @@ def create_app():
     app.register_blueprint(restaurante_bp, url_prefix="/restaurante")
     app.register_blueprint(repartidor_bp, url_prefix="/repartidor")
     app.register_blueprint(admin_bp, url_prefix="/admin")
+    app.register_blueprint(config_bp, url_prefix="/config")
+    app.register_blueprint(session_bp, url_prefix="/session")  # 🆕 Nuevo blueprint de sesiones
 
     @app.route("/index")
     @app.route("/")

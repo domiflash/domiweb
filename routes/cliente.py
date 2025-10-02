@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from utils.auth_helpers import login_required, role_required
 from utils.delivery_calculator import DeliveryCalculator
+from utils.validation_decorators import validate_form, require_fields
+from utils.input_validator import input_validator
 from datetime import datetime
 
 cliente_bp = Blueprint("cliente", __name__)
