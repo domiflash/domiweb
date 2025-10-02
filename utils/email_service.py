@@ -6,9 +6,23 @@ Maneja todos los emails del sistema: recuperación, notificaciones, etc.
 from flask import current_app, render_template_string
 from flask_mail import Message
 import logging
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 class EmailService:
     """Servicio centralizado para el envío de emails"""
+    
+    @staticmethod
+    def _get_sender_email():
+        """Obtiene el email remitente, con fallback a variables de entorno"""
+        try:
+            return current_app.config['MAIL_DEFAULT_SENDER']
+        except (RuntimeError, KeyError):
+            # Fallback si no hay contexto de Flask
+            return os.getenv('MAIL_DEFAULT_SENDER', 'brayanji890@gmail.com')
     
     @staticmethod
     def send_password_recovery_email(email, token, user_name="Usuario"):
@@ -27,11 +41,14 @@ class EmailService:
             # Crear enlace de recuperación
             recovery_url = f"http://127.0.0.1:5000/auth/reset-password/{token}"
             
+            # Obtener email remitente
+            sender_email = EmailService._get_sender_email()
+            
             # Crear mensaje
             msg = Message(
                 subject="🔐 Recuperación de Contraseña - DomiFlash",
                 recipients=[email],
-                sender=current_app.config['MAIL_DEFAULT_SENDER']
+                sender=sender_email
             )
             
             # Template HTML del email
