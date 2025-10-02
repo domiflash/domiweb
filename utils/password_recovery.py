@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import mysql.connector
 from config import DB_CONFIG
 from flask import request
+from utils.email_service import email_service
 import hashlib
 import os
 
@@ -35,17 +36,40 @@ class PasswordRecoveryManager:
     
     def create_recovery_token(self, email):
         """
-        Crea un token de recuperación para el email dado
+        Crea un token de recuperación para el email dado y envía el email
         
         Returns:
             dict: {
                 'success': bool,
                 'token': str or None,
                 'message': str,
-                'expires_at': datetime or None
+                'expires_at': datetime or None,
+                'email_sent': bool
             }
         """
         try:
+            # Obtener nombre del usuario para personalizar el email
+            conn = mysql.connector.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT nomusu FROM usuarios WHERE corusu = %s AND estusu = 'activo'", (email,))
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                cursor.close()
+                conn.close()
+                return {
+                    'success': False,
+                    'token': None,
+                    'message': 'Usuario no encontrado o inactivo.',
+                    'expires_at': None,
+                    'email_sent': False
+                }
+            
+            user_name = user_result[0]
+            cursor.close()
+            conn.close()
+            
             # Generar token único
             token = self.generate_secure_token()
             
@@ -75,19 +99,38 @@ class PasswordRecoveryManager:
             conn.close()
             
             if token_creado:
+                # Enviar email de recuperación
+                email_result = email_service.send_password_recovery_email(
+                    email=email,
+                    token=token,
+                    user_name=user_name
+                )
+                
                 expires_at = datetime.now() + timedelta(hours=self.token_expiry_hours)
-                return {
-                    'success': True,
-                    'token': token,
-                    'message': 'Token de recuperación creado exitosamente',
-                    'expires_at': expires_at
-                }
+                
+                if email_result['success']:
+                    return {
+                        'success': True,
+                        'token': token,
+                        'message': f'Email de recuperación enviado exitosamente a {email}. Revisa tu bandeja de entrada.',
+                        'expires_at': expires_at,
+                        'email_sent': True
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'token': None,
+                        'message': f'Token creado pero error enviando email: {email_result["message"]}',
+                        'expires_at': None,
+                        'email_sent': False
+                    }
             else:
                 return {
                     'success': False,
                     'token': None,
                     'message': 'No se pudo crear el token. Usuario no encontrado o demasiados tokens activos.',
-                    'expires_at': None
+                    'expires_at': None,
+                    'email_sent': False
                 }
                 
         except Exception as e:
@@ -95,7 +138,8 @@ class PasswordRecoveryManager:
                 'success': False,
                 'token': None,
                 'message': f'Error al crear token: {str(e)}',
-                'expires_at': None
+                'expires_at': None,
+                'email_sent': False
             }
     
     def validate_recovery_token(self, token):

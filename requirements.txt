@@ -2,6 +2,7 @@ Flask
 Flask-MySQLdb
 Flask-Bcrypt
 Flask-Session
+Flask-Mail
 python-dotenv
 Flask-WTF
 waitress

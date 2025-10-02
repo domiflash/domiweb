@@ -202,21 +202,20 @@ def forgot_password():
             flash("⚠️ Por favor ingresa un email válido", "warning")
             return render_template("auth/forgot_password.html")
         
-        # Crear token de recuperación
+        # Crear token de recuperación y enviar email
         result = recovery_manager.create_recovery_token(email)
         
-        if result['success']:
-            # En un entorno real, aquí enviarías el email
-            # Por ahora mostramos el token en el flash (solo para desarrollo)
+        if result['success'] and result['email_sent']:
+            flash(f"✅ {result['message']}", "success")
+        elif result['success'] and not result['email_sent']:
+            # Token creado pero email falló - mostrar enlace para desarrollo
             recovery_url = url_for('auth.reset_password', token=result['token'], _external=True)
-            
-            flash(f"✅ Se ha enviado un enlace de recuperación a tu email. " +
-                  f"El enlace expira en 1 hora.<br><br>" +
-                  f"<strong>🔗 Enlace de recuperación (DESARROLLO):</strong><br>" +
+            flash(f"⚠️ Token creado pero error enviando email. " +
+                  f"<br><strong>🔗 Enlace de desarrollo:</strong><br>" +
                   f"<a href='{recovery_url}' class='text-blue-600 underline'>" +
-                  f"Recuperar contraseña</a>", "success")
+                  f"Recuperar contraseña</a>", "warning")
         else:
-            flash(f"⚠️ {result['message']}", "warning")
+            flash(f"❌ {result['message']}", "error")
         
         return render_template("auth/forgot_password.html")
     

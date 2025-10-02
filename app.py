@@ -7,6 +7,7 @@ from routes.repartidor import repartidor_bp
 from routes.admin import admin_bp
 import pymysql.cursors  # ✅ usamos pymysql
 from flask_session import Session
+from flask_mail import Mail
 from dotenv import load_dotenv
 import os
 import sys
@@ -37,6 +38,10 @@ def create_app():
     app.config['SESSION_TYPE'] = 'filesystem'  # Cambiar a 'redis' si se usa Redis
     app.config['SESSION_PERMANENT'] = False
     Session(app)
+    
+    # Configurar Flask-Mail
+    mail = Mail(app)
+    app.mail = mail
 
     # Registrar blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
