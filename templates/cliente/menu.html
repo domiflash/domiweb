@@ -1,45 +1,330 @@
 {% extends "base.html" %}
 
-{% block title %}Menú del Cliente{% endblock %}
+{% block title %}Restaurantes - DomiFlash{% endblock %}
+{% block description %}Descubre los mejores restaurantes de tu ciudad. Comida deliciosa con entrega rápida.{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6 text-center">Menú de Restaurantes</h1>
-
-<div class="space-y-4">
-    {% for idres, restaurante in restaurantes.items() %}
-    <div class="border rounded-lg shadow-lg p-4">
-        <h2 class="text-xl font-bold">
-            <button class="text-blue-500 hover:underline" onclick="toggleProductos('{{ idres }}')">
-                {{ restaurante.nombre }}
-            </button>
-        </h2>
-        <div id="productos-{{ idres }}" class="hidden mt-4">
-            {% if restaurante.productos %}
-            <ul class="space-y-2">
-                {% for producto in restaurante.productos %}
-                <li class="border-b pb-2">
-                    <h3 class="font-bold">{{ producto.nompro }}</h3>
-                    <p class="text-gray-600">{{ producto.despro }}</p>
-                    <p class="text-green-500 font-bold">${{ producto.prepro }}</p>
-                    <form action="{{ url_for('cliente.agregar_al_carrito') }}" method="post">
-                        <input type="hidden" name="producto_id" value="{{ producto.idpro }}">
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Añadir al Carrito</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-gray-500">No hay productos disponibles.</p>
-            {% endif %}
-        </div>
+<!-- Header de página -->
+<section class="bg-gradient-to-r from-domi-orange to-domi-red text-white py-12">
+  <div class="container mx-auto px-6">
+    <div class="text-center">
+      <h1 class="text-4xl lg:text-5xl font-bold mb-4">
+        🍽️ Restaurantes Disponibles
+      </h1>
+      <p class="text-xl opacity-90 max-w-2xl mx-auto">
+        Descubre sabores únicos de los mejores restaurantes de la ciudad. 
+        Entrega garantizada en menos de 30 minutos.
+      </p>
     </div>
-    {% endfor %}
-</div>
+  </div>
+</section>
+
+<!-- Barra de búsqueda y filtros -->
+<section class="dark-bg dark-border-b py-6">
+  <div class="container mx-auto px-6">
+    <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+      <!-- Búsqueda -->
+      <div class="flex-1 max-w-md">
+        <div class="relative">
+          <input type="text" 
+                 id="search-restaurants"
+                 placeholder="Buscar restaurantes o comida..." 
+                 class="input pl-10">
+          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 dark-text-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filtros -->
+      <div class="flex gap-3 flex-wrap">
+        <button class="filter-btn active" data-filter="all">
+          <span>🍽️</span> Todos
+        </button>
+        <button class="filter-btn" data-filter="rapida">
+          <span>⚡</span> Comida Rápida
+        </button>
+        <button class="filter-btn" data-filter="italiana">
+          <span>🍕</span> Italiana
+        </button>
+        <button class="filter-btn" data-filter="mexicana">
+          <span>🌮</span> Mexicana
+        </button>
+        <button class="filter-btn" data-filter="asiatica">
+          <span>🍜</span> Asiática
+        </button>
+      </div>
+      
+      <!-- Ordenar -->
+      <div class="flex items-center gap-2">
+        <span class="dark-text-secondary text-sm font-medium">Ordenar:</span>
+        <select id="sort-restaurants" class="input text-sm">
+          <option value="popular">Más Popular</option>
+          <option value="rating">Mejor Calificados</option>
+          <option value="delivery">Tiempo de Entrega</option>
+          <option value="price">Precio</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Grid de restaurantes -->
+<section class="py-12 dark-bg">
+  <div class="container mx-auto px-6">
+    <!-- Contador de resultados -->
+    <div class="mb-8">
+      <p class="dark-text-secondary">
+        <span class="font-semibold dark-text" id="results-count">{{ restaurantes|length }}</span> 
+        restaurantes encontrados
+      </p>
+    </div>
+    
+    <!-- Grid responsivo -->
+    <div id="restaurants-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for idres, restaurante in restaurantes.items() %}
+      <div class="restaurant-card dark-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+           data-restaurant-id="{{ idres }}"
+           data-category="rapida">
+        <!-- Imagen del restaurante -->
+        <div class="relative h-48 bg-gradient-to-br from-domi-orange to-domi-red overflow-hidden">
+          <div class="absolute inset-0 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-300">
+            🍽️
+          </div>
+          
+          <!-- Badges -->
+          <div class="absolute top-4 left-4 flex gap-2">
+            <div class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+              <span>⭐</span>
+              <span>4.{{ loop.index % 5 + 5 }}</span>
+            </div>
+          </div>
+          
+          <div class="absolute top-4 right-4 flex gap-2">
+            <div class="bg-domi-yellow text-domi-dark px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+              <span>🕐</span>
+              <span>{{ 20 + (loop.index % 3) * 10 }}-{{ 30 + (loop.index % 3) * 10 }} min</span>
+            </div>
+          </div>
+          
+          <!-- Badge de envío gratis -->
+          {% if loop.index % 3 == 0 %}
+          <div class="absolute bottom-4 left-4">
+            <div class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+              🚚 Envío GRATIS
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        
+        <!-- Contenido -->
+        <div class="p-6">
+          <div class="mb-4">
+            <h3 class="text-xl font-bold text-domi-dark mb-2 group-hover:text-domi-orange transition-colors">
+              {{ restaurante.nombre }}
+            </h3>
+            <p class="text-gray-600 text-sm mb-3">
+              Cocina {{ ['tradicional', 'rápida', 'gourmet', 'casera'][loop.index0 % 4] }} • 
+              ${{ 15000 + (loop.index % 5) * 5000 }} promedio
+            </p>
+          </div>
+          
+          <!-- Información adicional -->
+          <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+            <div class="flex items-center gap-4">
+              <span class="flex items-center gap-1">
+                <span>👥</span>
+                <span>{{ 50 + loop.index * 23 }}+ pedidos</span>
+              </span>
+              <span class="flex items-center gap-1">
+                <span>📍</span>
+                <span>{{ ['0.5', '1.2', '2.1', '0.8', '1.5'][loop.index0 % 5] }} km</span>
+              </span>
+            </div>
+          </div>
+          
+          <!-- Productos destacados -->
+          {% if restaurante.productos %}
+          <div class="mb-4">
+            <p class="text-xs text-gray-500 mb-2">Productos populares:</p>
+            <div class="flex flex-wrap gap-1">
+              {% for producto in restaurante.productos[:3] %}
+              <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
+                {{ producto.nompro }}
+              </span>
+              {% endfor %}
+              {% if restaurante.productos|length > 3 %}
+              <span class="bg-domi-orange text-white px-2 py-1 rounded-full text-xs">
+                +{{ restaurante.productos|length - 3 }} más
+              </span>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Botón de acción -->
+          <button onclick="toggleProductos('{{ idres }}')" 
+                  class="w-full bg-domi-gradient text-white py-3 rounded-full font-semibold hover:shadow-lg transition-all duration-200 transform group-hover:scale-[1.02]">
+            <span class="flex items-center justify-center gap-2">
+              <span>Ver Menú</span>
+              <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Panel de productos (mejorado) -->
+      <div id="productos-{{ idres }}" class="hidden col-span-full mb-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 border-l-4 border-domi-orange">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-domi-dark">{{ restaurante.nombre }}</h3>
+              <p class="text-gray-600">Menú completo disponible</p>
+            </div>
+            <button onclick="toggleProductos('{{ idres }}')" 
+                    class="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          {% if restaurante.productos %}
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for producto in restaurante.productos %}
+            <div class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <h4 class="font-bold text-domi-dark mb-1">{{ producto.nompro }}</h4>
+                  <p class="text-gray-600 text-sm mb-2">{{ producto.despro }}</p>
+                  <p class="text-domi-orange font-bold text-lg">${{ producto.prepro }}</p>
+                </div>
+                <div class="text-3xl ml-3">
+                  {{ ['🍔', '🍕', '🌮', '🍟', '🥤', '🍰'][loop.index0 % 6] }}
+                </div>
+              </div>
+              
+              <form action="{{ url_for('cliente.agregar_al_carrito') }}" method="post" class="add-to-cart-form">
+                <input type="hidden" name="producto_id" value="{{ producto.idpro }}">
+                <div class="flex items-center gap-3">
+                  <select name="cantidad" class="border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                  <button type="submit" 
+                          class="flex-1 bg-domi-orange hover:bg-domi-red text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm hover:shadow-md">
+                    <span class="flex items-center justify-center gap-1">
+                      <span>🛒</span>
+                      <span>Agregar</span>
+                    </span>
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-12">
+            <div class="text-6xl mb-4">🍽️</div>
+            <h4 class="text-xl font-bold text-gray-600 mb-2">Menú próximamente</h4>
+            <p class="text-gray-500">Este restaurante está preparando su menú digital.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <!-- Estado vacío -->
+    <div id="no-results" class="hidden text-center py-16">
+      <div class="text-6xl mb-4">🔍</div>
+      <h3 class="text-2xl font-bold text-gray-600 mb-2">No encontramos restaurantes</h3>
+      <p class="text-gray-500 mb-6">Prueba ajustando tus filtros o busca algo diferente.</p>
+      <button onclick="clearFilters()" class="bg-domi-orange text-white px-6 py-3 rounded-full font-medium hover:bg-domi-red transition-colors">
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+.filter-btn {
+  @apply px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-domi-orange hover:text-domi-orange transition-all duration-200 flex items-center gap-2 text-sm font-medium;
+}
+.filter-btn.active {
+  @apply bg-domi-orange text-white border-domi-orange;
+}
+.restaurant-card:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+}
+</style>
 
 <script>
-function toggleProductos(idres) {
-    const productosDiv = document.getElementById(`productos-${idres}`);
-    productosDiv.classList.toggle('hidden');
+// Funcionalidad de búsqueda y filtros (se expandirá en JavaScript principal)
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-restaurants');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const sortSelect = document.getElementById('sort-restaurants');
+  const restaurantCards = document.querySelectorAll('.restaurant-card');
+  const noResults = document.getElementById('no-results');
+  const resultsCount = document.getElementById('results-count');
+
+  // Funcionalidad básica de filtros
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Aquí se implementaría la lógica de filtrado
+      console.log('Filtro seleccionado:', this.dataset.filter);
+    });
+  });
+
+  // Animación de carga de cards
+  restaurantCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.5s ease-out';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 100);
+  });
+  
+  // Mejorar formularios de agregar al carrito
+  document.querySelectorAll('.add-to-cart-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      
+      btn.innerHTML = '<span class="flex items-center justify-center gap-1"><span>⏳</span><span>Agregando...</span></span>';
+      btn.disabled = true;
+      
+      // Restaurar después de 2 segundos (simulación)
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Mostrar notificación
+        if (window.showToast) {
+          window.showToast('¡Producto agregado al carrito!', 'success');
+        }
+      }, 1000);
+    });
+  });
+});
+
+function clearFilters() {
+  document.getElementById('search-restaurants').value = '';
+  document.querySelector('.filter-btn.active').classList.remove('active');
+  document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+  document.getElementById('sort-restaurants').value = 'popular';
 }
 </script>
 {% endblock %}

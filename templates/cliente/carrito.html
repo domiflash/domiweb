@@ -1,53 +1,320 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h1 class="text-3xl font-bold mb-6 text-center">Carrito de Compras</h1>
+{% block title %}Carrito de Compras - DomiFlash{% endblock %}
 
-<div class="flex justify-center items-center mt-6">
-    <div class="w-11/12 lg:w-3/4">
-        <table class="table-auto w-full border border-gray-300 shadow-lg rounded-lg">
-            <thead class="bg-gray-800 text-white">
-                <tr>
-                    <th class="px-4 py-2">Producto</th>
-                    <th class="px-4 py-2">Precio</th>
-                    <th class="px-4 py-2">Cantidad</th>
-                    <th class="px-4 py-2">Subtotal</th>
-                    <th class="px-4 py-2">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in carrito %}
-                <tr class="odd:bg-gray-100 even:bg-white hover:bg-gray-200">
-                    <td class="border px-4 py-2">{{ item.nompro }}</td>
-                    <td class="border px-4 py-2 text-center">${{ item.prepro }}</td>
-                    <td class="border px-4 py-2 text-center">
-                        <form action="{{ url_for('cliente.actualizar_carrito') }}" method="POST">
-                            <input type="hidden" name="producto_id" value="{{ item.idpro }}">
-                            <input type="number" name="cantidad" value="{{ item.canprocar }}" class="w-16 text-center border rounded">
-                            <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded">Actualizar</button>
-                        </form>
-                    </td>
-                    <td class="border px-4 py-2 text-center">${{ item.prepro * item.canprocar }}</td>
-                    <td class="border px-4 py-2 text-center">
-                        <form action="{{ url_for('cliente.eliminar_del_carrito') }}" method="POST">
-                            <input type="hidden" name="producto_id" value="{{ item.idpro }}">
-                            <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="mt-4 flex justify-between">
-            <form action="{{ url_for('cliente.vaciar_carrito') }}" method="POST">
-                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Vaciar Carrito</button>
-            </form>
-            {% if carrito %}
-            <a href="{{ url_for('cliente.checkout') }}" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">
-                Proceder al Checkout
-            </a>
-            {% endif %}
+{% block content %}
+<!-- Header de carrito -->
+<section class="bg-gradient-to-r from-domi-orange to-domi-red text-white py-8">
+  <div class="container mx-auto px-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <div class="bg-white bg-opacity-20 p-3 rounded-full">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h4.5m0 0L15 19M15 19a2 2 0 11-4 0m4 0a2 2 0 11-4 0"></path>
+          </svg>
         </div>
+        <div>
+          <h1 class="text-3xl font-bold">Mi Carrito</h1>
+          <p class="text-orange-100">
+            {% if carrito %}
+              {{ carrito|length }} producto{{ 's' if carrito|length != 1 else '' }} agregado{{ 's' if carrito|length != 1 else '' }}
+            {% else %}
+              Tu carrito está vacío
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      
+      <div class="hidden md:block">
+        <div class="text-right">
+          <p class="text-orange-100">Total estimado</p>
+          <p class="text-3xl font-bold" id="total-price">
+            ${% if carrito %}{{ (carrito | sum(attribute='prepro') * carrito | sum(attribute='canprocar')) | int }}{% else %}0{% endif %}
+          </p>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
+
+{% if carrito %}
+<!-- Contenido del carrito -->
+<section class="py-12 bg-gray-50">
+  <div class="container mx-auto px-6">
+    <div class="grid lg:grid-cols-3 gap-8">
+      <!-- Lista de productos -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <!-- Header de la tabla -->
+          <div class="bg-gray-50 px-6 py-4 border-b">
+            <h2 class="text-lg font-semibold text-domi-dark">Productos en tu carrito</h2>
+          </div>
+          
+          <!-- Items del carrito -->
+          <div class="divide-y divide-gray-100">
+            {% for item in carrito %}
+            <div class="p-6 hover:bg-gray-50 transition-colors cart-item">
+              <div class="flex items-center space-x-4">
+                <!-- Imagen del producto -->
+                <div class="flex-shrink-0">
+                  <div class="w-16 h-16 bg-domi-gradient rounded-xl flex items-center justify-center text-2xl">
+                    {{ ['🍔', '🍕', '🌮', '🍟', '🥤', '🍰'][loop.index0 % 6] }}
+                  </div>
+                </div>
+                
+                <!-- Información del producto -->
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-lg font-semibold text-domi-dark mb-1">{{ item.nompro }}</h3>
+                  <p class="text-gray-600 text-sm mb-2">Precio unitario: <span class="font-medium">${{ item.prepro }}</span></p>
+                  <div class="flex items-center text-sm text-gray-500">
+                    <span>Subtotal: </span>
+                    <span class="font-bold text-domi-orange ml-1">${{ item.prepro * item.canprocar }}</span>
+                  </div>
+                </div>
+                
+                <!-- Controles de cantidad -->
+                <div class="flex items-center space-x-3">
+                  <div class="flex items-center bg-gray-100 rounded-lg">
+                    <button onclick="updateQuantity({{ item.idpro }}, {{ item.canprocar - 1 }})" 
+                            class="p-2 hover:bg-gray-200 rounded-l-lg transition-colors {{ 'opacity-50 cursor-not-allowed' if item.canprocar <= 1 else '' }}"
+                            {{ 'disabled' if item.canprocar <= 1 else '' }}>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                      </svg>
+                    </button>
+                    
+                    <div class="px-4 py-2 bg-white border-x">
+                      <span class="font-semibold text-domi-dark">{{ item.canprocar }}</span>
+                    </div>
+                    
+                    <button onclick="updateQuantity({{ item.idpro }}, {{ item.canprocar + 1 }})" 
+                            class="p-2 hover:bg-gray-200 rounded-r-lg transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <!-- Botón eliminar -->
+                  <button onclick="removeItem({{ item.idpro }})" 
+                          class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 hover:text-red-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          
+          <!-- Footer de la tabla -->
+          <div class="bg-gray-50 px-6 py-4 border-t">
+            <div class="flex items-center justify-between">
+              <button onclick="clearCart()" 
+                      class="text-red-500 hover:text-red-700 font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Vaciar carrito
+              </button>
+              
+              <a href="{{ url_for('cliente.menu') }}" 
+                 class="text-domi-orange hover:text-domi-red font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Seguir comprando
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Resumen del pedido -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
+          <h3 class="text-xl font-bold text-domi-dark mb-6">Resumen del pedido</h3>
+          
+          <!-- Detalles del costo -->
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span id="subtotal">${{ (carrito | sum(attribute='prepro') * carrito | sum(attribute='canprocar')) | int }}</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Domicilio</span>
+              <span class="text-green-600 font-medium">GRATIS</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Propina (opcional)</span>
+              <select id="tip-select" class="text-right border-none bg-transparent focus:outline-none">
+                <option value="0">$0</option>
+                <option value="2000">$2,000</option>
+                <option value="3000">$3,000</option>
+                <option value="5000">$5,000</option>
+              </select>
+            </div>
+            <hr class="my-4">
+            <div class="flex justify-between text-xl font-bold text-domi-dark">
+              <span>Total</span>
+              <span id="final-total">${{ (carrito | sum(attribute='prepro') * carrito | sum(attribute='canprocar')) | int }}</span>
+            </div>
+          </div>
+          
+          <!-- Información de entrega -->
+          <div class="bg-domi-gradient-light rounded-lg p-4 mb-6">
+            <div class="flex items-center gap-2 text-domi-orange font-semibold mb-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Tiempo estimado de entrega
+            </div>
+            <p class="text-domi-dark font-bold text-lg">25-35 minutos</p>
+          </div>
+          
+          <!-- Botón de checkout -->
+          <a href="{{ url_for('cliente.checkout') }}" 
+             class="w-full bg-domi-gradient text-white py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2 mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            Proceder al pago
+          </a>
+          
+          <!-- Seguridad -->
+          <div class="text-center text-sm text-gray-500">
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+              <span>Pago 100% seguro</span>
+            </div>
+            <p>Tus datos están protegidos con encriptación SSL</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% else %}
+<!-- Carrito vacío -->
+<section class="py-20 bg-gray-50">
+  <div class="container mx-auto px-6 text-center">
+    <div class="max-w-md mx-auto">
+      <div class="text-8xl mb-6">🛒</div>
+      <h2 class="text-3xl font-bold text-domi-dark mb-4">Tu carrito está vacío</h2>
+      <p class="text-gray-600 mb-8 text-lg">
+        ¡Es hora de llenarlo con comida deliciosa! Explora nuestros restaurantes 
+        y encuentra tus platillos favoritos.
+      </p>
+      
+      <a href="{{ url_for('cliente.menu') }}" 
+         class="bg-domi-gradient text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 inline-flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        Explorar restaurantes
+      </a>
+      
+      <!-- Sugerencias -->
+      <div class="mt-12 grid md:grid-cols-3 gap-4 text-left">
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <div class="text-2xl mb-2">🍕</div>
+          <h3 class="font-semibold mb-1">Pizza</h3>
+          <p class="text-sm text-gray-600">Recién horneada</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <div class="text-2xl mb-2">🍔</div>
+          <h3 class="font-semibold mb-1">Hamburguesas</h3>
+          <p class="text-sm text-gray-600">Jugosas y deliciosas</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <div class="text-2xl mb-2">🌮</div>
+          <h3 class="font-semibold mb-1">Comida Mexicana</h3>
+          <p class="text-sm text-gray-600">Sabores auténticos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<script>
+// Funciones del carrito
+function updateQuantity(productId, newQuantity) {
+  if (newQuantity <= 0) return;
+  
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '{{ url_for("cliente.actualizar_carrito") }}';
+  
+  const productInput = document.createElement('input');
+  productInput.type = 'hidden';
+  productInput.name = 'producto_id';
+  productInput.value = productId;
+  
+  const quantityInput = document.createElement('input');
+  quantityInput.type = 'hidden';
+  quantityInput.name = 'cantidad';
+  quantityInput.value = newQuantity;
+  
+  form.appendChild(productInput);
+  form.appendChild(quantityInput);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function removeItem(productId) {
+  if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("cliente.eliminar_del_carrito") }}';
+    
+    const productInput = document.createElement('input');
+    productInput.type = 'hidden';
+    productInput.name = 'producto_id';
+    productInput.value = productId;
+    
+    form.appendChild(productInput);
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+function clearCart() {
+  if (confirm('¿Estás seguro de que quieres vaciar completamente el carrito?')) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("cliente.vaciar_carrito") }}';
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+// Actualizar total con propina
+document.getElementById('tip-select').addEventListener('change', function() {
+  const tipAmount = parseInt(this.value);
+  const subtotal = parseInt(document.getElementById('subtotal').textContent.replace('$', '').replace(',', ''));
+  const finalTotal = subtotal + tipAmount;
+  
+  document.getElementById('final-total').textContent = '$' + finalTotal.toLocaleString();
+});
+
+// Animaciones de entrada
+document.addEventListener('DOMContentLoaded', function() {
+  const cartItems = document.querySelectorAll('.cart-item');
+  cartItems.forEach((item, index) => {
+    item.style.opacity = '0';
+    item.style.transform = 'translateX(-20px)';
+    
+    setTimeout(() => {
+      item.style.transition = 'all 0.5s ease-out';
+      item.style.opacity = '1';
+      item.style.transform = 'translateX(0)';
+    }, index * 100);
+  });
+});
+</script>
 {% endblock %}

@@ -1,22 +1,98 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h1 class="text-3xl font-bold mb-6 text-center">Perfil</h1>
+{% block title %}Mi Perfil - DomiFlash{% endblock %}
 
-<form action="{{ url_for('cliente.perfil') }}" method="post" class="max-w-lg mx-auto">
-    <div class="mb-4">
-        <label for="nombre" class="block text-gray-700">Nombre</label>
-        <input type="text" id="nombre" name="nombre" value="{{ usuario.nomusu }}" class="w-full border rounded px-3 py-2">
+{% block content %}
+<!-- Header de perfil -->
+<section class="bg-gradient-to-r from-domi-orange to-domi-red text-white py-12">
+  <div class="container mx-auto px-6">
+    <div class="text-center">
+      <div class="mx-auto w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-4xl mb-4">
+        👤
+      </div>
+      <h1 class="text-4xl font-bold mb-2">Mi Perfil</h1>
+      <p class="text-orange-100">Gestiona tu información personal</p>
     </div>
-    <div class="mb-4">
-        <label for="email" class="block text-gray-700">Correo</label>
-        <input type="email" id="email" name="email" value="{{ usuario.corusu }}" class="w-full border rounded px-3 py-2">
+  </div>
+</section>
+
+<!-- Contenido del perfil -->
+<section class="py-12 dark-bg min-h-screen">
+  <div class="container mx-auto px-6">
+    <div class="max-w-2xl mx-auto">
+      <!-- Tarjeta de perfil -->
+      <div class="dark-card p-8">
+        <form action="{{ url_for('cliente.perfil') }}" method="post" class="space-y-6">
+          <div>
+            <label for="nombre" class="block text-sm font-medium dark-text mb-2">
+              📝 Nombre Completo
+            </label>
+            <input type="text" 
+                   id="nombre" 
+                   name="nombre" 
+                   value="{{ usuario.nomusu }}" 
+                   class="input"
+                   placeholder="Tu nombre completo"
+                   required>
+          </div>
+          
+          <div>
+            <label for="email" class="block text-sm font-medium dark-text mb-2">
+              📧 Correo Electrónico
+            </label>
+            <input type="email" 
+                   id="email" 
+                   name="email" 
+                   value="{{ usuario.corusu }}" 
+                   class="input"
+                   placeholder="tu@ejemplo.com"
+                   required>
+          </div>
+          
+          <div>
+            <label for="direccion" class="block text-sm font-medium dark-text mb-2">
+              📍 Dirección de Entrega
+            </label>
+            <input type="text" 
+                   id="direccion" 
+                   name="direccion" 
+                   value="{{ usuario.dirusu }}" 
+                   class="input"
+                   placeholder="Tu dirección completa"
+                   required>
+          </div>
+          
+          <div class="flex gap-4 pt-4">
+            <button type="submit" class="btn-primary flex-1">
+              💾 Actualizar Perfil
+            </button>
+            <a href="{{ url_for('cliente.menu') }}" class="btn-secondary flex-1 text-center">
+              ← Volver al Menú
+            </a>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Información adicional -->
+      <div class="dark-card p-6 mt-6">
+        <h3 class="text-lg font-semibold dark-text mb-4">📊 Estadísticas</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center p-4 dark-border rounded-lg">
+            <div class="text-2xl font-bold text-domi-orange">0</div>
+            <div class="text-sm dark-text-secondary">Pedidos Realizados</div>
+          </div>
+          <div class="text-center p-4 dark-border rounded-lg">
+            <div class="text-2xl font-bold text-domi-orange">$0</div>
+            <div class="text-sm dark-text-secondary">Total Gastado</div>
+          </div>
+          <div class="text-center p-4 dark-border rounded-lg">
+            <div class="text-2xl font-bold text-domi-orange">★★★★★</div>
+            <div class="text-sm dark-text-secondary">Cliente Nuevo</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="mb-4">
-        <label for="direccion" class="block text-gray-700">Dirección</label>
-        <input type="text" id="direccion" name="direccion" value="{{ usuario.dirusu }}" class="w-full border rounded px-3 py-2">
-    </div>
-    <button class="bg-blue-500 text-white px-4 py-2 rounded">Actualizar</button>
-</form>
+  </div>
+</section>
 
 {% endblock %}

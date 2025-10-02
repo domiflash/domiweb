@@ -50,6 +50,10 @@ def create_app():
     def index():
         return render_template("index.html")
 
+    @app.route("/offline")
+    def offline():
+        return render_template("offline.html")
+
     return app
 
 if __name__ == "__main__":

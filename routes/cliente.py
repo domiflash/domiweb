@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from utils.auth_helpers import login_required, role_required
+from utils.delivery_calculator import DeliveryCalculator
+from datetime import datetime
 
 cliente_bp = Blueprint("cliente", __name__)
 
@@ -214,7 +216,39 @@ def checkout():
             flash("Debe seleccionar un restaurante", "danger")
             return redirect(url_for("cliente.checkout"))
         
+        # 🔥 VALIDAR QUE HAY PRODUCTOS EN EL CARRITO ANTES DE PROCEDER
+        cursor.execute("""
+            SELECT COUNT(*) as count_items
+            FROM carritos c
+            WHERE c.idusu = %s
+        """, (user_id,))
+        carrito_check = cursor.fetchone()
+        
+        if not carrito_check or carrito_check['count_items'] == 0:
+            flash("Tu carrito está vacío. Agrega productos antes de continuar.", "warning")
+            return redirect(url_for("cliente.menu"))
+        
         try:
+            # 🔥 CALCULAR TOTAL ANTES DE CREAR EL PEDIDO
+            # (porque el carrito se vacía automáticamente al crear el pedido)
+            cursor.execute("""
+                SELECT COALESCE(SUM(c.canprocar * p.prepro), 0) as total,
+                       COUNT(*) as num_items
+                FROM carritos c
+                JOIN productos p ON c.idpro = p.idpro
+                WHERE c.idusu = %s
+            """, (user_id,))
+            total_result = cursor.fetchone()
+            total = float(total_result['total']) if total_result and total_result['total'] is not None else 0.0
+            num_items = total_result['num_items'] if total_result else 0
+            
+            print(f"🔍 DEBUG - Usuario: {user_id}, Items en carrito: {num_items}, Total calculado: {total}")
+            
+            # Validar que el total no sea 0 (debería haber productos)
+            if total <= 0 or num_items == 0:
+                flash(f"Error: No se pueden procesar pedidos sin productos o con monto 0. Items: {num_items}, Total: {total}", "danger")
+                return redirect(url_for("cliente.checkout"))
+            
             # Usar el procedimiento almacenado para confirmar pedido
             cursor.callproc("confirmar_pedido", (user_id, restaurante_id))
             result = cursor.fetchone()
@@ -222,20 +256,36 @@ def checkout():
             if result:
                 pedido_id = result['id_pedido_creado']
                 
-                # Calcular total del pedido
-                cursor.execute("""
-                    SELECT SUM(cantidad * precio_unitario) as total
-                    FROM detalle_pedidos WHERE idped = %s
-                """, (pedido_id,))
-                total_result = cursor.fetchone()
-                total = total_result['total'] if total_result else 0
-                
-                # Registrar pago
-                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total_result))
+                # Registrar pago (ahora ya tenemos el total calculado)
+                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total))
                 current_app.db.commit()
                 
-                flash(f"Pedido #{pedido_id} creado exitosamente por ${total_result}", "success")
-                return redirect(url_for("cliente.mis_pedidos"))
+                # 🕐 Calcular tiempo estimado de entrega
+                try:
+                    tiempo_info = DeliveryCalculator.calcular_tiempo_para_pedido(pedido_id)
+                    
+                    if tiempo_info:
+                        tiempo_formateado = DeliveryCalculator.formatear_tiempo_estimado(tiempo_info['tiempo_estimado'])
+                        flash(f"¡Pedido realizado con éxito! Total: ${total:.2f} - Llegará en {tiempo_formateado}", "success")
+                        
+                        # Guardar info de tiempo en sesión para mostrar en página de éxito
+                        session['ultimo_pedido'] = {
+                            'id': pedido_id,
+                            'total': float(total),
+                            'tiempo_estimado': tiempo_info['tiempo_estimado'],
+                            'hora_estimada': tiempo_info['hora_estimada'].strftime('%H:%M'),
+                            'distancia': tiempo_info['distancia_km'],
+                            'restaurante': tiempo_info['restaurante'],
+                            'metodo_pago': metodo_pago
+                        }
+                    else:
+                        flash(f"¡Pedido realizado con éxito! Total: ${total:.2f}", "success")
+                except Exception as e:
+                    print(f"Error calculando tiempo: {e}")
+                    flash(f"¡Pedido realizado con éxito! Total: ${total:.2f}", "success")
+                
+                # Redirigir a página de pago exitoso
+                return redirect(url_for("cliente.pago_exitoso", pedido_id=pedido_id, metodo=metodo_pago, total=f"{total:.2f}"))
                 
         except Exception as e:
             flash(f"Error al procesar pedido: {str(e)}", "danger")
@@ -277,22 +327,78 @@ def checkout():
 @login_required
 @role_required("cliente")
 def mis_pedidos():
-    """Muestra el historial de pedidos del cliente."""
+    """Muestra el historial de pedidos del cliente con tiempo estimado."""
     user_id = session.get("usuario_id")
     cursor = current_app.db.cursor()
     
     cursor.execute("""
         SELECT p.idped, r.nomres, p.estped, p.fecha_creacion,
-               SUM(dp.cantidad * dp.precio_unitario) as total,
+               p.tiempo_estimado_minutos, p.hora_estimada_entrega,
+               COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) as total,
                pg.metodo, pg.estado as estado_pago
         FROM pedidos p
         JOIN restaurantes r ON p.idres = r.idres
-        JOIN detalle_pedidos dp ON p.idped = dp.idped
+        LEFT JOIN detalle_pedidos dp ON p.idped = dp.idped
         LEFT JOIN pagos pg ON p.idped = pg.idped
         WHERE p.idusu = %s
-        GROUP BY p.idped, r.nomres, p.estped, p.fecha_creacion, pg.metodo, pg.estado
+        GROUP BY p.idped, r.nomres, p.estped, p.fecha_creacion, 
+                 p.tiempo_estimado_minutos, p.hora_estimada_entrega, pg.metodo, pg.estado
         ORDER BY p.fecha_creacion DESC
     """, (user_id,))
     
-    pedidos = cursor.fetchall()
+    pedidos_raw = cursor.fetchall()
+    
+    # Enriquecer datos de pedidos con información de entrega
+    pedidos = []
+    for pedido in pedidos_raw:
+        pedido_dict = dict(pedido)
+        
+        # Calcular estado de entrega si hay tiempo estimado
+        if pedido['tiempo_estimado_minutos']:
+            estado_entrega = DeliveryCalculator.obtener_estado_entrega_con_tiempo(pedido['idped'])
+            if estado_entrega:
+                pedido_dict.update(estado_entrega)
+        
+        pedidos.append(pedido_dict)
+    
     return render_template("cliente/mis_pedidos.html", pedidos=pedidos)
+
+@cliente_bp.route("/pago-exitoso")
+@login_required
+@role_required("cliente")
+def pago_exitoso():
+    """Página de confirmación de pago exitoso."""
+    pedido_id = request.args.get("pedido_id")
+    metodo_pago = request.args.get("metodo", "efectivo")
+    monto_str = request.args.get("total", "0.00")
+    
+    # Convertir monto a float de forma segura
+    try:
+        monto = float(monto_str)
+    except (ValueError, TypeError):
+        monto = 0.00
+    
+    return render_template("cliente/pago_exitoso.html", 
+                         pedido_id=pedido_id, 
+                         metodo_pago=metodo_pago, 
+                         monto=f"{monto:.2f}")
+
+@cliente_bp.route("/actualizar-pago/<int:pedido_id>", methods=["POST"])
+@login_required
+@role_required("cliente")
+def actualizar_pago_simulado(pedido_id):
+    """Simula la actualización del estado del pago."""
+    try:
+        cursor = current_app.db.cursor()
+        
+        # Obtener el ID del pago asociado al pedido
+        cursor.execute("SELECT idpag FROM pagos WHERE idped = %s", (pedido_id,))
+        pago = cursor.fetchone()
+        
+        if pago:
+            cursor.callproc("actualizar_estado_pago", (pago['idpag'], "pagado"))
+            current_app.db.commit()
+        
+        return {"status": "success"}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500

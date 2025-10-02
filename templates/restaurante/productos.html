@@ -1,53 +1,194 @@
 {% extends "base.html" %}
 
-{% block title %}Gestión de Productos{% endblock %}
+{% block title %}Gestión de Productos - DomiFlash{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Productos del Restaurante</h1>
-<table class="table-auto w-full border border-gray-300 shadow-lg rounded-lg">
-	<thead class="bg-gray-800 text-white">
-		<tr>
-			<th class="px-4 py-2">ID</th>
-			<th class="px-4 py-2">Nombre</th>
-			<th class="px-4 py-2">Descripción</th>
-			<th class="px-4 py-2">Precio</th>
-			<th class="px-4 py-2">Stock</th>
-			<th class="px-4 py-2">Categoría</th>
-			<th class="px-4 py-2">Acciones</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for producto in productos %}
-		<tr class="odd:bg-gray-100 even:bg-white hover:bg-gray-200">
-			<td class="border px-4 py-2 text-center">{{ producto.idpro }}</td>
-			<td class="border px-4 py-2">{{ producto.nompro }}</td>
-			<td class="border px-4 py-2">{{ producto.despro }}</td>
-			<td class="border px-4 py-2 text-right">${{ producto.prepro }}</td>
-			<td class="border px-4 py-2 text-center">{{ producto.stopro }}</td>
-			<td class="border px-4 py-2">{{ producto.tipcat }}</td>
-			<td class="border px-4 py-2 text-center">
-				<a href="/restaurante/productos/{{ producto.idpro }}/editar" class="text-blue-500 hover:underline">Editar</a>
-				<form action="/restaurante/productos/{{ producto.idpro }}/eliminar" method="post" style="display:inline;">
-					<button type="submit" class="text-red-500 hover:underline">Eliminar</button>
-				</form>
-			</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
+<div class="min-h-screen dark-bg p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header con título -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-3xl font-bold dark-text mb-2">🍕 Gestión de Productos</h1>
+          <p class="text-gray-600 dark:text-gray-400">Administra el menú de tu restaurante</p>
+        </div>
+        <button onclick="toggleFormulario()" class="bg-domi-orange hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
+          ➕ Agregar Producto
+        </button>
+      </div>
 
-<h2 class="text-xl font-bold mt-8 mb-4">Agregar Producto</h2>
-<form action="/restaurante/productos" method="post" class="space-y-4">
-	<input type="text" name="nompro" placeholder="Nombre" class="w-full p-2 border rounded" required>
-	<input type="text" name="despro" placeholder="Descripción" class="w-full p-2 border rounded">
-	<input type="number" step="0.01" name="prepro" placeholder="Precio" class="w-full p-2 border rounded" required>
-	<input type="number" name="stopro" placeholder="Stock" class="w-full p-2 border rounded" required>
-	<select name="idcat" class="w-full p-2 border rounded bg-white text-black" required>
-		<option value="" disabled selected>Seleccione una categoría</option>
-		{% for categoria in categorias %}
-		<option value="{{ categoria.idcat }}">{{ categoria.tipcat }}</option>
-		{% endfor %}
-	</select>
-	<button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Agregar</button>
-</form>
+      <!-- Estadísticas rápidas -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="dark-card p-4 text-center">
+          <div class="text-2xl font-bold text-domi-orange">{{ productos|length }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Total Productos</div>
+        </div>
+        <div class="dark-card p-4 text-center">
+          <div class="text-2xl font-bold text-green-600">{{ productos|selectattr("stopro", ">", 0)|list|length }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">En Stock</div>
+        </div>
+        <div class="dark-card p-4 text-center">
+          <div class="text-2xl font-bold text-red-600">{{ productos|selectattr("stopro", "equalto", 0)|list|length }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Sin Stock</div>
+        </div>
+        <div class="dark-card p-4 text-center">
+          <div class="text-2xl font-bold text-blue-600">{{ categorias|length }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Categorías</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario para agregar producto (oculto por defecto) -->
+    <div id="formulario-producto" class="dark-card mb-8 hidden">
+      <div class="p-6">
+        <h3 class="text-xl font-bold dark-text mb-4">➕ Agregar Nuevo Producto</h3>
+        <form action="/restaurante/productos" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Nombre del Producto</label>
+            <input type="text" name="nompro" placeholder="Ej: Pizza Margherita" 
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Precio</label>
+            <input type="number" step="0.01" name="prepro" placeholder="0.00" 
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium dark-text mb-2">Descripción</label>
+            <textarea name="despro" placeholder="Describe tu producto..." rows="3"
+                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent"></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Stock Disponible</label>
+            <input type="number" name="stopro" placeholder="0" 
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Categoría</label>
+            <select name="idcat" 
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+              <option value="" disabled selected>Seleccione una categoría</option>
+              {% for categoria in categorias %}
+              <option value="{{ categoria.idcat }}">{{ categoria.tipcat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="md:col-span-2 flex gap-3">
+            <button type="submit" class="bg-domi-orange hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              ✅ Agregar Producto
+            </button>
+            <button type="button" onclick="toggleFormulario()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              ❌ Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="dark-card overflow-hidden">
+      {% if productos %}
+        <div class="overflow-x-auto">
+          <table class="table-auto w-full">
+            <thead class="bg-gray-800 dark:bg-gray-900">
+              <tr>
+                <th class="px-6 py-4 text-left text-white font-semibold">Producto</th>
+                <th class="px-6 py-4 text-left text-white font-semibold">Categoría</th>
+                <th class="px-6 py-4 text-center text-white font-semibold">Precio</th>
+                <th class="px-6 py-4 text-center text-white font-semibold">Stock</th>
+                <th class="px-6 py-4 text-center text-white font-semibold">Estado</th>
+                <th class="px-6 py-4 text-center text-white font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for producto in productos %}
+              <tr class="border-b dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td class="px-6 py-4">
+                  <div>
+                    <div class="text-sm font-semibold dark-text">{{ producto.nompro }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                      {{ producto.despro or 'Sin descripción' }}
+                    </div>
+                    <div class="text-xs text-gray-400 dark:text-gray-500">ID: {{ producto.idpro }}</div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
+                    {{ producto.tipcat }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="text-lg font-bold text-green-600 dark:text-green-400">
+                    ${{ "{:,.0f}".format(producto.prepro) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="text-sm font-semibold 
+                    {% if producto.stopro > 10 %}text-green-600 dark:text-green-400
+                    {% elif producto.stopro > 0 %}text-yellow-600 dark:text-yellow-400
+                    {% else %}text-red-600 dark:text-red-400
+                    {% endif %}">
+                    {{ producto.stopro }} unidades
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  {% if producto.stopro > 0 %}
+                    <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs font-semibold">
+                      ✅ Disponible
+                    </span>
+                  {% else %}
+                    <span class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-2 py-1 rounded-full text-xs font-semibold">
+                      ❌ Agotado
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="flex justify-center space-x-2">
+                    <a href="/restaurante/productos/{{ producto.idpro }}/editar" 
+                       class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                      ✏️ Editar
+                    </a>
+                    <form action="/restaurante/productos/{{ producto.idpro }}/eliminar" method="post" style="display:inline;" 
+                          onsubmit="return confirm('¿Estás seguro de eliminar este producto?')">
+                      <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                        🗑️ Eliminar
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-12">
+          <div class="text-6xl mb-4">🍕</div>
+          <h3 class="text-xl font-semibold dark-text mb-2">No hay productos aún</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Comienza agregando productos a tu menú</p>
+          <button onclick="toggleFormulario()" class="bg-domi-orange hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+            ➕ Agregar Primer Producto
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleFormulario() {
+  const formulario = document.getElementById('formulario-producto');
+  formulario.classList.toggle('hidden');
+  
+  if (!formulario.classList.contains('hidden')) {
+    // Scroll hacia el formulario cuando se abre
+    formulario.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+</script>
 {% endblock %}
