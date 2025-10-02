@@ -16,7 +16,50 @@
 
     <!-- Formulario -->
     <div class="dark-card p-8">
-      <form method="POST" class="space-y-6">
+      
+      <!-- Alerta de cuenta bloqueada -->
+      {% if cuenta_bloqueada %}
+      <div class="mb-6 p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-lg">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <span class="text-2xl">🚫</span>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+              Cuenta Temporalmente Bloqueada
+            </h3>
+            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+              <p>Tu cuenta ha sido bloqueada debido a múltiples intentos de acceso fallidos.</p>
+              <p class="mt-1">
+                <strong>Tiempo restante:</strong> 
+                <span id="tiempo-restante" class="font-mono">{{ tiempo_restante or 15 }}</span> minutos
+              </p>
+              <p class="mt-2 text-xs">
+                Por tu seguridad, la cuenta se desbloqueará automáticamente después de este tiempo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      <form method="POST" 
+            class="space-y-6"
+            {% if cuenta_bloqueada %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+        
+        <!-- Información de seguridad -->
+        {% if not cuenta_bloqueada %}
+        <div class="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border-l-4 border-blue-400 mb-4">
+          <div class="flex items-center">
+            <span class="text-blue-500 mr-2">🛡️</span>
+            <div>
+              <p><strong>Información de seguridad:</strong></p>
+              <p>• Máximo 5 intentos de acceso</p>
+              <p>• Bloqueo temporal de 15 minutos por seguridad</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
         <div>
           <label for="email" class="block text-sm font-medium dark-text mb-2">
             Correo electrónico
@@ -79,7 +122,57 @@
   </div>
 </div>
 
-<!-- JavaScript para mostrar/ocultar contraseña -->
+<!-- JavaScript para mostrar/ocultar contraseña y countdown -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle de contraseña
+  const toggleButton = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('password');
+  const passwordIcon = document.getElementById('password-icon');
+
+  if (toggleButton && passwordInput && passwordIcon) {
+    toggleButton.addEventListener('click', function() {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      
+      // Cambiar icono
+      passwordIcon.textContent = isPassword ? '🙈' : '👁️';
+    });
+  }
+  
+  // Countdown para cuenta bloqueada
+  const tiempoRestanteElement = document.getElementById('tiempo-restante');
+  if (tiempoRestanteElement) {
+    let tiempoRestante = parseInt(tiempoRestanteElement.textContent);
+    
+    const countdown = setInterval(function() {
+      tiempoRestante--;
+      tiempoRestanteElement.textContent = tiempoRestante;
+      
+      if (tiempoRestante <= 0) {
+        clearInterval(countdown);
+        // Recargar la página para permitir nuevos intentos
+        location.reload();
+      }
+    }, 60000); // Actualizar cada minuto
+    
+    // También mostrar segundos para los últimos 2 minutos
+    if (tiempoRestante <= 2) {
+      let segundos = tiempoRestante * 60;
+      const countdownSegundos = setInterval(function() {
+        segundos--;
+        const minutos = Math.floor(segundos / 60);
+        const segs = segundos % 60;
+        tiempoRestanteElement.textContent = `${minutos}:${segs.toString().padStart(2, '0')}`;
+        
+        if (segundos <= 0) {
+          clearInterval(countdownSegundos);
+          location.reload();
+        }
+      }, 1000);
+    }
+  }
+});
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const toggleButton = document.getElementById('toggle-password');
