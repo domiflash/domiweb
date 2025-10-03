@@ -461,7 +461,42 @@ pip install -r requirements.txt
 # En Linux/Mac, usar sudo si es necesario
 ```
 
-## 📄 Documentación Adicional
+## � Despliegue y Distribución
+
+### 🚀 **Instalación Rápida (3 Pasos)**
+
+Para un despliegue rápido en otra máquina, consulta:
+- **`docs/despliegue/INSTALACION-RAPIDA.txt`** - Guía de 3 pasos
+- **`docs/despliegue/README.md`** - Índice completo de despliegue
+
+### 📋 **Documentación de Despliegue Completa**
+
+La carpeta `docs/despliegue/` contiene:
+
+- **`INSTRUCCIONES-DEPLOY.md`** - Guía completa de despliegue
+- **`.env.deploy-template`** - Plantilla de configuración 
+- **`export-db.bat`** - Script para exportar base de datos
+- **`INSTALACION-RAPIDA.txt`** - Guía express de instalación
+
+### 📦 **Preparar Paquete de Despliegue**
+
+1. **Exportar base de datos:**
+   ```bash
+   docs/despliegue/export-db.bat
+   ```
+
+2. **Archivos esenciales a incluir:**
+   - Carpeta completa del proyecto
+   - Base de datos exportada (dbflash.sql)
+   - Archivo `.env` configurado
+   - Documentación de `docs/despliegue/`
+
+3. **En máquina destino:**
+   - Descomprimir proyecto
+   - Seguir `docs/despliegue/INSTALACION-RAPIDA.txt`
+   - Ejecutar `install.bat`
+
+## �📄 Documentación Adicional
 
 - 📁 **`docs/ESTRUCTURA_PROYECTO.md`** - Estructura detallada
 - 📁 **`docs/reportes/`** - Reportes de desarrollo (solo local)

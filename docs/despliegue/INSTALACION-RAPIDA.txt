@@ -1,0 +1,45 @@
+🚀 DOMIFLASH - GUÍA RÁPIDA DE INSTALACIÓN
+=====================================================
+
+📋 REQUISITOS PREVIOS:
+- Python 3.8 o superior
+- MySQL o MariaDB
+- Git (opcional)
+
+⚡ INSTALACIÓN RÁPIDA (3 PASOS):
+
+1️⃣ PREPARAR BASE DE DATOS:
+   - Abre MySQL/MariaDB
+   - Ejecuta: CREATE DATABASE dbflash;
+   - Importa: mysql -u root -p dbflash < dbflash_backup.sql
+
+2️⃣ CONFIGURAR PROYECTO:
+   - Copia .env.deploy-template como .env
+   - Edita .env con tus credenciales de base de datos
+   - Ejecuta: install.bat
+
+3️⃣ EJECUTAR:
+   - Ejecuta: start.bat
+   - Abre: http://127.0.0.1:5000
+
+🔑 USUARIOS DE PRUEBA:
+- Admin: admin@domiflash / 123456789
+- Restaurante: restaurante@domiflash / 123456789  
+- Cliente: cliente@domiflash / 123456789
+- Repartidor: repartidor@domiflash / 123456789
+
+📱 FUNCIONES PRINCIPALES:
+- ✅ Sistema de Login/Registro
+- ✅ Gestión de Productos (Restaurantes)
+- ✅ Carrito de Compras (Clientes)
+- ✅ Gestión de Pedidos
+- ✅ Panel de Administración
+- ✅ Recuperación de Contraseñas
+- ✅ Sistema de Entregas
+
+🆘 PROBLEMAS COMUNES:
+- Error de base de datos → Verificar credenciales en .env
+- Puerto ocupado → Cambiar PORT en .env
+- Módulos faltantes → Ejecutar: pip install -r requirements.txt
+
+📞 SOPORTE: Revisar README.md para documentación completa
