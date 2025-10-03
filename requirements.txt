@@ -1,9 +1,39 @@
-Flask
-Flask-MySQLdb
-Flask-Bcrypt
-Flask-Session
-Flask-Mail
-python-dotenv
-Flask-WTF
-waitress
-pymysql
+# 🚀 DomiFlash - Sistema de Delivery
+# Dependencias principales para el funcionamiento completo
+
+# Framework principal
+Flask==3.0.0
+Werkzeug==3.0.0
+
+# Base de datos MySQL/MariaDB
+PyMySQL==1.1.0
+Flask-MySQLdb==1.0.1
+
+# Seguridad y autenticación
+Flask-Bcrypt==1.0.1
+Werkzeug>=3.0.0
+
+# Gestión de sesiones con timeout
+Flask-Session==0.5.0
+
+# Sistema de correo electrónico (recuperación de contraseñas)
+Flask-Mail==0.9.1
+
+# Manejo de variables de entorno
+python-dotenv==1.0.0
+
+# Formularios y validación
+Flask-WTF==1.2.1
+WTForms==3.1.0
+
+# Servidor de producción
+waitress==2.1.2
+
+# Utilidades adicionales
+itsdangerous==2.1.2
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+click==8.1.7
+
+# Desarrollo y debugging (opcional)
+python-decouple==3.8

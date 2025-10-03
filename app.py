@@ -39,14 +39,48 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
-    # Conexión a MariaDB con pymysql
-    app.db = pymysql.connect(
-        host=app.config["DB_HOST"],
-        user=app.config["DB_USER"],
-        password=app.config["DB_PASSWORD"],
-        database=app.config["DB_NAME"],
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    # 🗄️ Configuración de base de datos con reconexión automática
+    def get_db_connection():
+        """Obtener conexión a la base de datos con reconexión automática"""
+        try:
+            connection = pymysql.connect(
+                host=app.config["DB_HOST"],
+                user=app.config["DB_USER"],
+                password=app.config["DB_PASSWORD"],
+                database=app.config["DB_NAME"],
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=True,
+                charset='utf8mb4',
+                connect_timeout=10,
+                read_timeout=10,
+                write_timeout=10
+            )
+            # Verificar conexión
+            connection.ping(reconnect=True)
+            return connection
+        except Exception as e:
+            print(f"❌ Error conectando a la base de datos: {e}")
+            return None
+    
+    # Función para obtener conexión segura
+    def get_db():
+        """Obtener conexión de base de datos con manejo de errores"""
+        if not hasattr(app, 'db') or app.db is None:
+            app.db = get_db_connection()
+        
+        try:
+            # Probar la conexión actual
+            app.db.ping(reconnect=True)
+            return app.db
+        except:
+            # Si falla, crear nueva conexión
+            print("🔄 Reconectando a la base de datos...")
+            app.db = get_db_connection()
+            return app.db
+    
+    # Establecer conexión inicial
+    app.db = get_db_connection()
+    app.get_db = get_db
 
     # ⏰ Configurar Flask-Session con timeout y seguridad
     app.config['SESSION_TYPE'] = 'filesystem'

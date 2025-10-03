@@ -315,5 +315,47 @@ class InputValidator:
         
         return results
 
+    @classmethod
+    def validate_email_flexible(cls, email: str) -> tuple[bool, str]:
+        """
+        Validación MUY flexible de email para login (usuarios existentes)
+        Permite emails de desarrollo como admin@domiflash, test@local, etc.
+        """
+        if not email or not isinstance(email, str):
+            return False, "Email es requerido"
+        
+        email = email.strip()
+        if len(email) < 3:
+            return False, "Email muy corto"
+        
+        # Verificación SUPER básica: solo debe contener @
+        if '@' not in email:
+            return False, "Email debe contener @"
+        
+        # Verificar que no tenga múltiples @
+        if email.count('@') != 1:
+            return False, "Email debe tener exactamente un @"
+        
+        # Verificar que haya algo antes y después del @
+        parts = email.split('@')
+        if len(parts[0]) < 1 or len(parts[1]) < 1:
+            return False, "Formato de email inválido"
+        
+        return True, ""
+    
+    @classmethod
+    def validate_password_flexible(cls, password: str) -> tuple[bool, str]:
+        """
+        Validación más flexible de contraseña para login (usuarios existentes)
+        Solo verifica que no esté vacía
+        """
+        if not password:
+            return False, "Contraseña es requerida"
+        
+        if len(password) < 1:
+            return False, "Contraseña no puede estar vacía"
+        
+        return True, ""
+
 # Instancia global del validador
 input_validator = InputValidator()

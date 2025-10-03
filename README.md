@@ -1,53 +1,352 @@
-# 🍕 DomiFlash - Sistema de Delivery
+# 🍕 DomiFlash - Sistema de Delivery Completo
 
-**Sistema web completo de gestión de pedidos y delivery** desarrollado con Flask, MySQL y TailwindCSS.
+**Plataforma web avanzada de gestión de pedidos y delivery** desarrollada con Flask, MySQL y tecnologías modernas.
 
-## ✨ Características Principales
+## 🌟 Características Implementadas
 
-- 🔐 **Sistema de autenticación** multirol (Admin, Cliente, Restaurante, Repartidor)
-- 🛒 **Carrito de compras** dinámico con AJAX
+### 🔐 **Seguridad Robusta**
+- ✅ **Autenticación multirol** (Admin, Cliente, Restaurante, Repartidor)
+- ✅ **Timeout de sesión automático** (30 min con alertas)
+- ✅ **Validación de entrada** centralizada (XSS, SQL injection)
+- ✅ **Recuperación de contraseña** por email
+- ✅ **Límite de intentos de login** con bloqueo temporal
+- ✅ **Cookies seguras** (HttpOnly, SameSite)
+
+### � **Funcionalidades de Negocio**
+- �🛒 **Carrito de compras** dinámico con AJAX
 - 💳 **Múltiples métodos de pago** (Efectivo, Tarjeta, Nequi, Daviplata)
-- 📱 **Progressive Web App (PWA)** - Instalable en móviles
-- 🌙 **Dark Mode** completo y persistente
-- 📄 **Generación de facturas PDF**
-- 🚚 **Gestión de repartidores** y tracking de pedidos
+- 🚚 **Gestión completa de repartidores** y tracking
 - 📊 **Dashboard administrativo** con estadísticas
+- 📱 **Progressive Web App (PWA)** - Instalable
+- 🌙 **Dark Mode** completo y persistente
 
-## 🏗️ Estructura del Proyecto
+### 🛡️ **Tecnología Avanzada**
+- ⚡ **Reconexión automática** de base de datos
+- � **Sistema de sesiones** con renovación inteligente
+- 📧 **Email automático** (Flask-Mail + Gmail SMTP)
+- 🔄 **Validación en tiempo real** con decoradores
+- 📱 **Responsive design** con TailwindCSS
 
-```
-domiweb/
-├── 📁 models/          # Modelos de datos (Usuario, Pedido, Producto, etc.)
-├── 📁 routes/          # Controladores por rol (admin, cliente, restaurante)
-├── 📁 templates/       # Plantillas HTML organizadas por módulo
-├── 📁 static/          # CSS, JS, imágenes y PWA assets
-├── 📁 utils/           # Utilidades (auth, cálculos, helpers)
-├── 📁 docs/            # Documentación del proyecto
-├── 📁 scripts/         # Scripts SQL y utilidades
-└── 📁 temp/            # Archivos temporales (no en Git)
-```
+---
 
-## 🚀 Instalación Rápida
+## 🚀 Instalación Completa (Guía de Presentación)
 
-### 1. **Clonar y Preparar**
+### 📋 **Prerrequisitos**
+- ✅ **Python 3.8+** instalado
+- ✅ **MySQL/MariaDB** corriendo
+- ✅ **Git** instalado
+- ✅ **Cuenta de Gmail** (para emails)
+
+---
+
+### � **Paso 1: Clonar el Repositorio**
+
 ```bash
+# Clonar el proyecto
 git clone https://github.com/domiflash/domiweb.git
+
+# Entrar al directorio
 cd domiweb
-python -m venv venv
-venv\Scripts\activate  # Windows
+
+# Verificar que estás en la rama correcta
+git checkout flujos
 ```
 
-### 2. **Instalar Dependencias**
+---
+
+### 🐍 **Paso 2: Crear Ambiente Virtual**
+
 ```bash
+# Crear ambiente virtual
+python -m venv venv
+
+# Activar ambiente virtual
+# En Windows:
+venv\Scripts\activate
+
+# En macOS/Linux:
+source venv/bin/activate
+
+# Verificar activación (debería mostrar (venv) al inicio del prompt)
+```
+
+---
+
+### � **Paso 3: Instalar Dependencias**
+
+```bash
+# Actualizar pip
+python -m pip install --upgrade pip
+
+# Instalar todas las dependencias
+pip install -r requirements.txt
+
+# Verificar instalación
+pip list
+```
+
+---
+
+### 🗄️ **Paso 4: Configurar Base de Datos**
+
+#### **4.1 Crear la Base de Datos**
+```sql
+-- En MySQL/MariaDB:
+CREATE DATABASE dbflash CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE USER 'domiflash'@'localhost' IDENTIFIED BY 'tu_password_seguro';
+GRANT ALL PRIVILEGES ON dbflash.* TO 'domiflash'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+#### **4.2 Ejecutar Scripts SQL**
+```bash
+# Importar estructura de base de datos (si tienes el archivo .sql)
+mysql -u domiflash -p dbflash < database/structure.sql
+
+# O ejecutar los scripts en orden:
+mysql -u domiflash -p dbflash < scripts/paso1_tabla_tokens.sql
+mysql -u domiflash -p dbflash < scripts/implementar_recuperacion_password.sql
+# ... (ejecutar todos los scripts en orden)
+```
+
+---
+
+### ⚙️ **Paso 5: Configurar Variables de Entorno**
+
+Crear archivo `.env` en la raíz del proyecto:
+
+```env
+# 🗄️ Configuración de Base de Datos
+DB_HOST=localhost
+DB_USER=domiflash
+DB_PASSWORD=tu_password_seguro
+DB_NAME=dbflash
+
+# 🔐 Clave secreta de Flask (genera una nueva)
+SECRET_KEY=tu_clave_super_secreta_aqui_cambiar
+
+# 📧 Configuración de Email (Gmail)
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USE_SSL=False
+MAIL_USERNAME=tu_email@gmail.com
+MAIL_PASSWORD=tu_app_password_gmail
+MAIL_DEFAULT_SENDER=tu_email@gmail.com
+
+# 🕐 Configuración de Sesiones
+SESSION_TIMEOUT_MINUTES=30
+SESSION_WARNING_MINUTES=5
+SESSION_COOKIE_SECURE=False
+
+# 🚫 Límites de Seguridad
+MAX_LOGIN_ATTEMPTS=5
+LOGIN_ATTEMPT_TIMEOUT_MINUTES=15
+```
+
+---
+
+### 📧 **Paso 6: Configurar Gmail para Emails**
+
+#### **6.1 Habilitar Contraseña de Aplicación**
+1. Ve a tu **Cuenta de Google**
+2. **Seguridad** → **Verificación en 2 pasos** (activar si no está)
+3. **Contraseñas de aplicaciones** → **Generar nueva**
+4. Selecciona **"Otra"** → Escribe **"DomiFlash"**
+5. **Copia la contraseña generada** (16 caracteres)
+6. **Úsala en `MAIL_PASSWORD`** del archivo `.env`
+
+---
+
+### 🧪 **Paso 7: Crear Datos de Prueba**
+
+#### **7.1 Usuario Administrador**
+```sql
+-- Insertar usuario admin para pruebas
+INSERT INTO usuarios (nomusu, corusu, conusu, rolusu, estusu) VALUES 
+('Administrador', 'admin@domiflash', 'pbkdf2:sha256:hasheado', 'administrador', 'activo');
+```
+
+#### **7.2 Datos de Prueba Rápidos**
+```sql
+-- Cliente de prueba
+INSERT INTO usuarios (nomusu, corusu, conusu, dirusu, rolusu, estusu) VALUES 
+('Cliente Test', 'cliente@test.com', 'hash_123', 'Calle 123', 'cliente', 'activo');
+
+-- Restaurante de prueba  
+INSERT INTO usuarios (nomusu, corusu, conusu, dirusu, rolusu, estusu) VALUES 
+('Restaurante Demo', 'restaurant@test.com', 'hash_123', 'Ave Principal', 'restaurante', 'activo');
+```
+
+---
+
+### 🚀 **Paso 8: Ejecutar la Aplicación**
+
+```bash
+# Método 1: Desarrollo rápido
+python app.py
+
+# Método 2: Con archivo de inicio
+.\start.bat
+
+# Método 3: Producción con Waitress
+waitress-serve --host=127.0.0.1 --port=5000 app:app
+```
+
+**🌐 La aplicación estará disponible en:** `http://127.0.0.1:5000`
+
+---
+
+## 🧪 **Verificación y Pruebas**
+
+### ✅ **Checklist de Funcionamiento**
+
+1. **🔗 Acceso Principal**
+   - [ ] Página principal carga correctamente
+   - [ ] Dark mode funciona
+   - [ ] PWA se puede instalar
+
+2. **� Sistema de Autenticación**
+   - [ ] Login: `admin@domiflash` / `123456`
+   - [ ] Registro de nuevo usuario
+   - [ ] Recuperación de contraseña por email
+   - [ ] Timeout de sesión (30 min)
+
+3. **🛡️ Seguridad**
+   - [ ] Validación de formularios
+   - [ ] Alertas de sesión próxima a expirar
+   - [ ] Bloqueo por intentos fallidos
+   - [ ] Emails de recuperación
+
+4. **📱 Funcionalidades**
+   - [ ] Dashboard por rol
+   - [ ] Carrito de compras
+   - [ ] Gestión de pedidos
+   - [ ] Sistema de pagos
+
+### 🎯 **URLs de Prueba**
+
+```bash
+# Principales
+http://127.0.0.1:5000/                      # Página principal
+http://127.0.0.1:5000/auth/login            # Login
+http://127.0.0.1:5000/auth/register         # Registro
+
+# Sistemas de prueba (requiere login)
+http://127.0.0.1:5000/config/test-validation      # Prueba validaciones
+http://127.0.0.1:5000/config/test-session-timeout # Prueba timeout sesión
+http://127.0.0.1:5000/config/update-profile       # Actualizar perfil
+```
+
+---
+
+## 🛠️ **Solución de Problemas Comunes**
+
+### ❌ **Error de Base de Datos**
+```bash
+# Verificar conexión
+mysql -u domiflash -p -h localhost
+
+# Verificar que la BD existe
+SHOW DATABASES;
+USE dbflash;
+SHOW TABLES;
+```
+
+### ❌ **Error de Dependencias**
+```bash
+# Reinstalar dependencias
+pip uninstall -r requirements.txt -y
 pip install -r requirements.txt
 ```
 
-### 3. **Configurar Base de Datos**
-Crear archivo `.env` en la raíz:
+### ❌ **Error de Email**
+- ✅ Verificar que Gmail tiene **verificación en 2 pasos** activada
+- ✅ Usar **contraseña de aplicación**, no la contraseña normal
+- ✅ Verificar el archivo `.env` con datos correctos
 
-```env
-DB_HOST=localhost
-DB_USER=tu_usuario
+### ❌ **Error de Puerto**
+```bash
+# Si el puerto 5000 está ocupado
+netstat -ano | findstr :5000
+# Cambiar puerto en app.py: app.run(port=5001)
+```
+
+---
+
+## 📚 **Estructura de Archivos Importantes**
+
+```
+domiweb/
+├── 📄 app.py                    # Aplicación principal
+├── 📄 config.py                 # Configuraciones
+├── 📄 requirements.txt          # Dependencias
+├── 📄 .env                      # Variables de entorno (crear)
+├── 📄 start.bat                 # Script de inicio Windows
+├── 📁 routes/                   # Controladores
+│   ├── auth.py                  # Autenticación
+│   ├── session.py               # Gestión de sesiones
+│   └── config.py                # Configuración de perfil
+├── 📁 utils/                    # Utilidades
+│   ├── session_manager.py       # Timeout de sesiones
+│   ├── input_validator.py       # Validaciones
+│   ├── password_recovery.py     # Recuperación contraseñas
+│   └── db_helpers.py            # Helpers de BD
+├── 📁 templates/                # Plantillas HTML
+├── 📁 static/                   # Archivos estáticos
+└── 📁 scripts/                  # Scripts SQL
+```
+
+---
+
+## 🎯 **Para la Presentación**
+
+### 📋 **Demostración Sugerida**
+
+1. **🚀 Instalación** (5 min)
+   - Clonar repositorio
+   - Crear ambiente virtual
+   - Instalar dependencias
+
+2. **⚙️ Configuración** (5 min)
+   - Crear archivo `.env`
+   - Configurar base de datos
+   - Probar conexión
+
+3. **🔐 Seguridad** (10 min)
+   - Login con validaciones flexibles
+   - Sistema de timeout de sesión
+   - Recuperación de contraseña por email
+   - Validación de entrada automática
+
+4. **💼 Funcionalidades** (10 min)
+   - Dashboard multirol
+   - Carrito de compras
+   - Sistema de pedidos
+   - PWA e instalación móvil
+
+### 🏆 **Puntos Destacados**
+
+- ✨ **Código limpio** y bien documentado
+- 🛡️ **Seguridad implementada** desde el diseño
+- 📱 **Tecnologías modernas** (PWA, AJAX, TailwindCSS)
+- 🔄 **Sistema robusto** con reconexión automática
+- 📧 **Integración completa** de email
+- 🕐 **Gestión inteligente** de sesiones
+
+---
+
+## 👨‍💻 **Información del Desarrollador**
+
+- **Proyecto**: Sistema de Delivery DomiFlash
+- **Tecnologías**: Flask, MySQL, TailwindCSS, PWA
+- **Características**: Seguridad avanzada, timeout de sesión, validaciones
+- **Repositorio**: [github.com/domiflash/domiweb](https://github.com/domiflash/domiweb)
+- **Rama actual**: `flujos` (con todas las mejoras de seguridad)
+
+---
+
+**🎉 ¡Listo para presentar! La aplicación está completamente funcional y lista para demostración.** 🚀
 DB_PASSWORD=tu_password
 DB_NAME=domiweb
 SECRET_KEY=tu_clave_secreta_muy_segura
