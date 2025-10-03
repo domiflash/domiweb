@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Producto - DomiFlash{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-4">
+        ✏️ Editar Producto
+      </h1>
+      <p class="text-gray-600 dark:text-gray-300">
+        Modifica la información de tu producto
+      </p>
+    </div>
+
+    <!-- Formulario de Edición -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+      <form action="{{ url_for('restaurante.editar_producto', idpro=producto.idpro) }}" method="post">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Nombre del Producto</label>
+            <input type="text" name="nompro" value="{{ producto.nompro }}" placeholder="Ej: Hamburguesa Especial" 
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Precio</label>
+            <input type="number" step="0.01" name="prepro" value="{{ producto.prepro }}" placeholder="0.00" 
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium dark-text mb-2">Descripción</label>
+            <textarea name="despro" placeholder="Describe tu producto..." rows="3"
+                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent">{{ producto.despro }}</textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Stock Disponible</label>
+            <input type="number" name="stopro" value="{{ producto.stopro }}" placeholder="0" 
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium dark-text mb-2">Categoría</label>
+            <select name="idcat" 
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-domi-orange focus:border-transparent" required>
+              <option value="" disabled>Seleccione una categoría</option>
+              {% for categoria in categorias %}
+              <option value="{{ categoria.idcat }}" {% if categoria.idcat == producto.idcat %}selected{% endif %}>
+                {{ categoria.tipcat }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="md:col-span-2 flex gap-3">
+            <button type="submit" class="bg-domi-orange hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              ✅ Actualizar Producto
+            </button>
+            <a href="{{ url_for('restaurante.listar_productos') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-center">
+              ❌ Cancelar
+            </a>
+          </div>
+          
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

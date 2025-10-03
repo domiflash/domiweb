@@ -94,7 +94,7 @@ def editar_producto(idpro):
 
     cursor.execute("SELECT * FROM productos WHERE idpro = %s", (idpro,))
     producto = cursor.fetchone()
-    cursor.execute("SELECT idcat, nomcat FROM categorias")
+    cursor.execute("SELECT idcat, tipcat FROM categorias")
     categorias = cursor.fetchall()
     return render_template("restaurante/editar_producto.html", producto=producto, categorias=categorias)
 

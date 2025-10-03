@@ -20,17 +20,24 @@ def list_users():
 @role_required("administrador")
 def update_user(user_id):
     nomusu = request.form["nomusu"]
-    corusu = request.form["corusu"]
     dirusu = request.form["dirusu"]
     rolusu = request.form["rolusu"]
 
     cursor = current_app.db.cursor()
-    cursor.execute(
-        "UPDATE usuarios SET nomusu=%s, corusu=%s, dirusu=%s, rolusu=%s WHERE idusu=%s",
-        (nomusu, corusu, dirusu, rolusu, user_id),
-    )
-    current_app.db.commit()
-    flash("Usuario actualizado correctamente", "success")
+    try:
+        # Actualizar el usuario (sin incluir el email)
+        cursor.execute(
+            "UPDATE usuarios SET nomusu=%s, dirusu=%s, rolusu=%s WHERE idusu=%s",
+            (nomusu, dirusu, rolusu, user_id),
+        )
+        current_app.db.commit()
+        flash("Usuario actualizado correctamente", "success")
+    except Exception as e:
+        current_app.db.rollback()
+        flash(f"Error al actualizar usuario: {str(e)}", "error")
+    finally:
+        cursor.close()
+    
     return redirect(url_for("admin.list_users"))
 
 @admin_bp.route("/users/deactivate/<int:user_id>", methods=["POST"])

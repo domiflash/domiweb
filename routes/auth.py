@@ -195,9 +195,15 @@ def login():
             remember_me = request.form.get('remember_me', False)
             session_manager.start_session(user["idusu"], user["rolusu"], remember_me)
             
-            # Guardar datos adicionales en sesión (compatibilidad)
+            # 🔄 Guardar datos adicionales en sesión (compatibilidad total)
             session["logged_in"] = True
             session["user_name"] = user["nomusu"]
+            # Compatibilidad con sistema antiguo
+            session["usuario_id"] = user["idusu"]
+            session["rol"] = user["rolusu"]
+            # Sistema nuevo (ya se guarda en session_manager pero por seguridad)
+            session["user_id"] = user["idusu"]
+            session["role"] = user["rolusu"]
     
             flash(f"Bienvenido, {user['nomusu']} 👋", "success")
             return redirect(url_for("auth.role_dashboard"))

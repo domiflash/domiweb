@@ -184,13 +184,12 @@ def vaciar_carrito():
 def perfil():
     if request.method == "POST":
         nombre = request.form["nombre"]
-        email = request.form["email"]
         direccion = request.form["direccion"]
 
         cursor = current_app.db.cursor()
         cursor.execute(
-            "UPDATE usuarios SET nomusu=%s, corusu=%s, dirusu=%s WHERE idusu=%s",
-            (nombre, email, direccion, session["usuario_id"]),
+            "UPDATE usuarios SET nomusu=%s, dirusu=%s WHERE idusu=%s",
+            (nombre, direccion, session["usuario_id"]),
         )
         current_app.db.commit()
         flash("Perfil actualizado correctamente", "success")
