@@ -18,7 +18,7 @@ def test():
 # @role_required("cliente")
 # def menu():
 #     db = current_app.get_db()
-     cursor = db.cursor()
+#     cursor = db.cursor()
 #     cursor.execute("SELECT idpro, nompro, despro, prepro FROM productos")
 #     productos = cursor.fetchall()
 #     return render_template("cliente/menu.html", productos=productos)
