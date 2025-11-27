@@ -4,8 +4,8 @@ Proporciona funciones para reconexión automática y manejo de errores
 """
 
 from flask import current_app
-import psycopg2
-import psycopg2.extras
+import psycopg
+from psycopg.rows import dict_row
 import functools
 import time
 
@@ -27,7 +27,7 @@ def safe_db_operation(f):
                 # Ejecutar la función
                 return f(db, *args, **kwargs)
                 
-            except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+            except (psycopg.OperationalError, psycopg.InterfaceError) as e:
                 print(f"🔄 Intento {attempt + 1}/{max_retries} - Error de BD: {e}")
                 
                 if attempt < max_retries - 1:

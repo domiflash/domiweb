@@ -6,11 +6,17 @@
 
 -- Eliminar tipos ENUM si existen (para recrear limpio)
 DROP TYPE IF EXISTS rol_usuario CASCADE;
+
 DROP TYPE IF EXISTS estado_usuario CASCADE;
+
 DROP TYPE IF EXISTS estado_pedido CASCADE;
+
 DROP TYPE IF EXISTS metodo_pago CASCADE;
+
 DROP TYPE IF EXISTS estado_pago CASCADE;
+
 DROP TYPE IF EXISTS estado_repartidor CASCADE;
+
 DROP TYPE IF EXISTS estado_restaurante CASCADE;
 
 -- =====================================================
@@ -18,11 +24,17 @@ DROP TYPE IF EXISTS estado_restaurante CASCADE;
 -- =====================================================
 
 CREATE TYPE rol_usuario AS ENUM ('cliente', 'restaurante', 'repartidor', 'administrador');
+
 CREATE TYPE estado_usuario AS ENUM ('activo', 'inactivo');
+
 CREATE TYPE estado_pedido AS ENUM ('pendiente', 'aceptado', 'preparando', 'en_camino', 'entregado', 'cancelado');
+
 CREATE TYPE metodo_pago AS ENUM ('efectivo', 'tarjeta', 'nequi', 'daviplata', 'otro');
+
 CREATE TYPE estado_pago AS ENUM ('pendiente', 'pagado');
+
 CREATE TYPE estado_repartidor AS ENUM ('activo', 'inactivo');
+
 CREATE TYPE estado_restaurante AS ENUM ('activo', 'inactivo');
 
 -- =====================================================
@@ -39,14 +51,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
     rolusu rol_usuario NOT NULL,
     estusu estado_usuario DEFAULT 'activo',
     creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lat_usuario DECIMAL(10,8) DEFAULT NULL,
-    lng_usuario DECIMAL(11,8) DEFAULT NULL,
+    lat_usuario DECIMAL(10, 8) DEFAULT NULL,
+    lng_usuario DECIMAL(11, 8) DEFAULT NULL,
     intentos_fallidos INT DEFAULT 0,
     bloqueado_hasta TIMESTAMP DEFAULT NULL,
     ultimo_intento TIMESTAMP DEFAULT NULL
 );
 
-CREATE INDEX idx_usuarios_email_intentos ON usuarios(corusu, intentos_fallidos);
+CREATE INDEX idx_usuarios_email_intentos ON usuarios (corusu, intentos_fallidos);
 
 -- Tabla: categorias
 CREATE TABLE IF NOT EXISTS categorias (
@@ -57,25 +69,25 @@ CREATE TABLE IF NOT EXISTS categorias (
 -- Tabla: restaurantes
 CREATE TABLE IF NOT EXISTS restaurantes (
     idres SERIAL PRIMARY KEY,
-    idusu INT NOT NULL REFERENCES usuarios(idusu),
+    idusu INT NOT NULL REFERENCES usuarios (idusu),
     nomres VARCHAR(100) NOT NULL,
     desres VARCHAR(300) DEFAULT NULL,
     dirres VARCHAR(200) DEFAULT NULL,
     telres VARCHAR(50) DEFAULT NULL,
     imgres VARCHAR(200) DEFAULT NULL,
     estres estado_restaurante DEFAULT 'activo',
-    lat_restaurante DECIMAL(10,8) DEFAULT -4.29810000,
-    lng_restaurante DECIMAL(11,8) DEFAULT -74.78460000
+    lat_restaurante DECIMAL(10, 8) DEFAULT -4.29810000,
+    lng_restaurante DECIMAL(11, 8) DEFAULT -74.78460000
 );
 
 -- Tabla: productos
 CREATE TABLE IF NOT EXISTS productos (
     idpro SERIAL PRIMARY KEY,
-    idres INT NOT NULL REFERENCES restaurantes(idres),
-    idcat INT NOT NULL REFERENCES categorias(idcat),
+    idres INT NOT NULL REFERENCES restaurantes (idres),
+    idcat INT NOT NULL REFERENCES categorias (idcat),
     nompro VARCHAR(100) NOT NULL,
     despro VARCHAR(255) DEFAULT NULL,
-    prepro DECIMAL(10,2) NOT NULL,
+    prepro DECIMAL(10, 2) NOT NULL,
     imgpro VARCHAR(200) DEFAULT NULL,
     stopro INT NOT NULL
 );
@@ -83,7 +95,7 @@ CREATE TABLE IF NOT EXISTS productos (
 -- Tabla: repartidores
 CREATE TABLE IF NOT EXISTS repartidores (
     idrep SERIAL PRIMARY KEY,
-    idusu INT NOT NULL REFERENCES usuarios(idusu),
+    idusu INT NOT NULL REFERENCES usuarios (idusu),
     nomrep VARCHAR(100) DEFAULT NULL,
     vehrep VARCHAR(100) DEFAULT NULL,
     estrep estado_repartidor DEFAULT 'activo'
@@ -92,17 +104,17 @@ CREATE TABLE IF NOT EXISTS repartidores (
 -- Tabla: carritos
 CREATE TABLE IF NOT EXISTS carritos (
     idcar SERIAL PRIMARY KEY,
-    idusu INT NOT NULL REFERENCES usuarios(idusu),
-    idpro INT NOT NULL REFERENCES productos(idpro),
+    idusu INT NOT NULL REFERENCES usuarios (idusu),
+    idpro INT NOT NULL REFERENCES productos (idpro),
     canprocar INT NOT NULL
 );
 
 -- Tabla: pedidos
 CREATE TABLE IF NOT EXISTS pedidos (
     idped SERIAL PRIMARY KEY,
-    idusu INT NOT NULL REFERENCES usuarios(idusu),
-    idres INT NOT NULL REFERENCES restaurantes(idres),
-    idrep INT DEFAULT NULL REFERENCES repartidores(idrep),
+    idusu INT NOT NULL REFERENCES usuarios (idusu),
+    idres INT NOT NULL REFERENCES restaurantes (idres),
+    idrep INT DEFAULT NULL REFERENCES repartidores (idrep),
     estped estado_pedido DEFAULT 'pendiente',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -113,26 +125,26 @@ CREATE TABLE IF NOT EXISTS pedidos (
 -- Tabla: detalle_pedidos
 CREATE TABLE IF NOT EXISTS detalle_pedidos (
     iddet SERIAL PRIMARY KEY,
-    idped INT NOT NULL REFERENCES pedidos(idped),
-    idpro INT NOT NULL REFERENCES productos(idpro),
+    idped INT NOT NULL REFERENCES pedidos (idped),
+    idpro INT NOT NULL REFERENCES productos (idpro),
     cantidad INT NOT NULL,
-    precio_unitario DECIMAL(10,2) NOT NULL
+    precio_unitario DECIMAL(10, 2) NOT NULL
 );
 
 -- Tabla: pagos
 CREATE TABLE IF NOT EXISTS pagos (
     idpag SERIAL PRIMARY KEY,
-    idped INT NOT NULL REFERENCES pedidos(idped),
+    idped INT NOT NULL REFERENCES pedidos (idped),
     metodo metodo_pago NOT NULL,
     estado estado_pago DEFAULT 'pendiente',
-    monto DECIMAL(10,2) NOT NULL,
+    monto DECIMAL(10, 2) NOT NULL,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabla: tokens_recuperacion
 CREATE TABLE IF NOT EXISTS tokens_recuperacion (
     id SERIAL PRIMARY KEY,
-    email VARCHAR(100) NOT NULL REFERENCES usuarios(corusu) ON DELETE CASCADE,
+    email VARCHAR(100) NOT NULL REFERENCES usuarios (corusu) ON DELETE CASCADE,
     token VARCHAR(255) NOT NULL UNIQUE,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_expiracion TIMESTAMP NOT NULL,
@@ -141,8 +153,13 @@ CREATE TABLE IF NOT EXISTS tokens_recuperacion (
     user_agent TEXT DEFAULT NULL
 );
 
-CREATE INDEX idx_token_email ON tokens_recuperacion(email, usado);
-CREATE INDEX idx_token_expiracion ON tokens_recuperacion(token, fecha_expiracion, usado);
+CREATE INDEX idx_token_email ON tokens_recuperacion (email, usado);
+
+CREATE INDEX idx_token_expiracion ON tokens_recuperacion (
+    token,
+    fecha_expiracion,
+    usado
+);
 
 -- Tabla: log_intentos_acceso
 CREATE TABLE IF NOT EXISTS log_intentos_acceso (
@@ -155,7 +172,7 @@ CREATE TABLE IF NOT EXISTS log_intentos_acceso (
     motivo_fallo VARCHAR(100) DEFAULT NULL
 );
 
-CREATE INDEX idx_log_email_fecha ON log_intentos_acceso(email, fecha_intento);
+CREATE INDEX idx_log_email_fecha ON log_intentos_acceso (email, fecha_intento);
 
 -- =====================================================
 -- FUNCIONES Y PROCEDIMIENTOS ALMACENADOS
@@ -641,28 +658,40 @@ FOR EACH ROW EXECUTE FUNCTION fn_after_role_update();
 
 -- Vista: Historial completo de pedidos
 CREATE OR REPLACE VIEW vista_historial AS
-SELECT 
+SELECT
     p.idped,
     u.nomusu AS cliente,
     r.nomres AS restaurante,
     rep.nomrep AS repartidor,
     p.estped AS estado_pedido,
-    SUM(d.cantidad * d.precio_unitario) AS total_pedido,
+    SUM(
+        d.cantidad * d.precio_unitario
+    ) AS total_pedido,
     pg.metodo AS metodo_pago,
     pg.estado AS estado_pago,
     p.fecha_creacion,
     p.fecha_actualizacion
-FROM pedidos p
-JOIN usuarios u ON p.idusu = u.idusu
-JOIN restaurantes r ON p.idres = r.idres
-LEFT JOIN repartidores rep ON p.idrep = rep.idrep
-JOIN detalle_pedidos d ON p.idped = d.idped
-LEFT JOIN pagos pg ON p.idped = pg.idped
-GROUP BY p.idped, u.nomusu, r.nomres, rep.nomrep, p.estped, pg.metodo, pg.estado, p.fecha_creacion, p.fecha_actualizacion;
+FROM
+    pedidos p
+    JOIN usuarios u ON p.idusu = u.idusu
+    JOIN restaurantes r ON p.idres = r.idres
+    LEFT JOIN repartidores rep ON p.idrep = rep.idrep
+    JOIN detalle_pedidos d ON p.idped = d.idped
+    LEFT JOIN pagos pg ON p.idped = pg.idped
+GROUP BY
+    p.idped,
+    u.nomusu,
+    r.nomres,
+    rep.nomrep,
+    p.estped,
+    pg.metodo,
+    pg.estado,
+    p.fecha_creacion,
+    p.fecha_actualizacion;
 
 -- Vista: Menú de restaurantes
 CREATE OR REPLACE VIEW vista_menu_restaurante AS
-SELECT 
+SELECT
     r.nomres AS restaurante,
     c.tipcat AS categoria,
     p.nompro AS producto,
@@ -670,14 +699,16 @@ SELECT
     p.prepro AS precio,
     p.stopro AS stock,
     p.imgpro AS imagen
-FROM productos p
-JOIN restaurantes r ON p.idres = r.idres
-JOIN categorias c ON p.idcat = c.idcat
-WHERE r.estres = 'activo';
+FROM
+    productos p
+    JOIN restaurantes r ON p.idres = r.idres
+    JOIN categorias c ON p.idcat = c.idcat
+WHERE
+    r.estres = 'activo';
 
 -- Vista: Pagos
 CREATE OR REPLACE VIEW vista_pagos AS
-SELECT 
+SELECT
     p.idped,
     u.nomusu AS cliente,
     r.nomres AS restaurante,
@@ -685,30 +716,40 @@ SELECT
     pg.estado,
     pg.monto,
     pg.fecha
-FROM pagos pg
-JOIN pedidos p ON pg.idped = p.idped
-JOIN usuarios u ON p.idusu = u.idusu
-JOIN restaurantes r ON p.idres = r.idres;
+FROM
+    pagos pg
+    JOIN pedidos p ON pg.idped = p.idped
+    JOIN usuarios u ON p.idusu = u.idusu
+    JOIN restaurantes r ON p.idres = r.idres;
 
 -- Vista: Pedidos por cliente
 CREATE OR REPLACE VIEW vista_pedidos_cliente AS
-SELECT 
+SELECT
     u.nomusu AS cliente,
     r.nomres AS restaurante,
     p.idped,
     p.estped AS estado,
-    SUM(d.cantidad * d.precio_unitario) AS total,
+    SUM(
+        d.cantidad * d.precio_unitario
+    ) AS total,
     p.fecha_creacion,
     p.fecha_actualizacion
-FROM pedidos p
-JOIN usuarios u ON p.idusu = u.idusu
-JOIN restaurantes r ON p.idres = r.idres
-JOIN detalle_pedidos d ON p.idped = d.idped
-GROUP BY p.idped, u.nomusu, r.nomres, p.estped, p.fecha_creacion, p.fecha_actualizacion;
+FROM
+    pedidos p
+    JOIN usuarios u ON p.idusu = u.idusu
+    JOIN restaurantes r ON p.idres = r.idres
+    JOIN detalle_pedidos d ON p.idped = d.idped
+GROUP BY
+    p.idped,
+    u.nomusu,
+    r.nomres,
+    p.estped,
+    p.fecha_creacion,
+    p.fecha_actualizacion;
 
 -- Vista: Pedidos por repartidor
 CREATE OR REPLACE VIEW vista_pedidos_repartidor AS
-SELECT 
+SELECT
     rep.nomrep AS repartidor,
     cli.nomusu AS cliente,
     res.nomres AS restaurante,
@@ -716,26 +757,27 @@ SELECT
     p.estped AS estado,
     p.fecha_creacion,
     p.fecha_actualizacion
-FROM pedidos p
-JOIN repartidores rep ON p.idrep = rep.idrep
-JOIN usuarios cli ON p.idusu = cli.idusu
-JOIN restaurantes res ON p.idres = res.idres;
+FROM
+    pedidos p
+    JOIN repartidores rep ON p.idrep = rep.idrep
+    JOIN usuarios cli ON p.idusu = cli.idusu
+    JOIN restaurantes res ON p.idres = res.idres;
 
 -- =====================================================
 -- DATOS INICIALES (Categorías)
 -- =====================================================
 
-INSERT INTO categorias (tipcat) VALUES 
-('Comida Rápida'),
-('Bebidas'),
-('Postres'),
-('Entradas'),
-('Platos Fuertes'),
-('Comida Saludable'),
-('Comida Internacional'),
-('Promociones'),
-('Comida Tipica')
-ON CONFLICT DO NOTHING;
+INSERT INTO
+    categorias (tipcat)
+VALUES ('Comida Rápida'),
+    ('Bebidas'),
+    ('Postres'),
+    ('Entradas'),
+    ('Platos Fuertes'),
+    ('Comida Saludable'),
+    ('Comida Internacional'),
+    ('Promociones'),
+    ('Comida Tipica') ON CONFLICT DO NOTHING;
 
 -- =====================================================
 -- FIN DEL SCRIPT

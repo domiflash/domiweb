@@ -8,8 +8,8 @@ from routes.admin import admin_bp
 from routes.config import config_bp
 from routes.session import session_bp
 from utils.session_manager import session_manager
-import psycopg2  # ✅ PostgreSQL
-import psycopg2.extras
+import psycopg  # ✅ PostgreSQL (v3)
+from psycopg.rows import dict_row
 from flask_session import Session
 from flask_mail import Mail
 from dotenv import load_dotenv
@@ -42,15 +42,15 @@ def create_app():
     def get_db_connection():
         """Obtener conexión a la base de datos PostgreSQL con reconexión automática"""
         try:
-            connection = psycopg2.connect(
+            connection = psycopg.connect(
                 host=app.config["DB_HOST"],
                 user=app.config["DB_USER"],
                 password=app.config["DB_PASSWORD"],
-                database=app.config["DB_NAME"],
-                cursor_factory=psycopg2.extras.RealDictCursor,
-                connect_timeout=10
+                dbname=app.config["DB_NAME"],
+                row_factory=dict_row,
+                connect_timeout=10,
+                autocommit=True
             )
-            connection.autocommit = True
             return connection
         except Exception as e:
             print(f"❌ Error conectando a la base de datos: {e}")

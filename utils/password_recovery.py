@@ -6,8 +6,8 @@ Maneja generación de tokens, validación y envío de emails
 import secrets
 import string
 from datetime import datetime, timedelta
-import psycopg2
-import psycopg2.extras
+import psycopg
+from psycopg.rows import dict_row
 from config import DB_CONFIG
 from flask import request
 from utils.email_service import email_service
@@ -17,8 +17,7 @@ import os
 
 def get_db_connection():
     """Obtener conexión a PostgreSQL"""
-    conn = psycopg2.connect(**DB_CONFIG, cursor_factory=psycopg2.extras.RealDictCursor)
-    conn.autocommit = True
+    conn = psycopg.connect(**DB_CONFIG, row_factory=dict_row, autocommit=True)
     return conn
 
 
