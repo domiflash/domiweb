@@ -51,9 +51,11 @@ def create_app():
                 connect_timeout=10,
                 autocommit=True
             )
+            print(f"✅ PostgreSQL conectado: {app.config['DB_HOST']}/{app.config['DB_NAME']}")
             return connection
         except Exception as e:
-            print(f"❌ Error conectando a la base de datos: {e}")
+            print(f"❌ Error conectando a PostgreSQL: {e}", file=sys.stderr)
+            print(f"Host: {app.config['DB_HOST']}, DB: {app.config['DB_NAME']}", file=sys.stderr)
             return None
     
     # Función para obtener conexión segura
@@ -70,7 +72,7 @@ def create_app():
             return app.db
         except:
             # Si falla, crear nueva conexión
-            print("🔄 Reconectando a la base de datos...")
+            print("🔄 Reconectando a PostgreSQL...", file=sys.stderr)
             app.db = get_db_connection()
             return app.db
     
@@ -112,32 +114,41 @@ def create_app():
     @app.route("/offline")
     def offline():
         return render_template("offline.html")
+    
+    @app.route("/health")
+    def health_check():
+        """Endpoint de salud para Render"""
+        try:
+            db_status = "connected" if app.db and not app.db.closed else "disconnected"
+            return {
+                "status": "healthy",
+                "database": db_status,
+                "environment": os.getenv('FLASK_ENV', 'development'),
+                "port": os.getenv('PORT', 'not set')
+            }, 200
+        except Exception as e:
+            return {"status": "unhealthy", "error": str(e)}, 500
+
+    @app.teardown_appcontext
+    def close_db(error):
+        """Cerrar conexión al finalizar request"""
+        if hasattr(app, 'db') and app.db and not app.db.closed:
+            app.db.close()
+
+    # Log de inicio
+    port = os.getenv('PORT', '5000')
+    print(f"🚀 DomiWeb iniciando en puerto {port}")
+    print(f"🌍 Entorno: {os.getenv('FLASK_ENV', 'development')}")
 
     return app
 
+# Para Gunicorn (producción)
+app = create_app()
+
+# Para desarrollo local
 if __name__ == "__main__":
-    app = create_app()
-
-    # Puerto dinámico
-    puerto = int(sys.argv[1]) if len(sys.argv) > 1 else 5000
-
-    # Solo abrir navegador en el proceso principal
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or os.environ.get("FLASK_ENV") == "production":
-        import webbrowser
-        webbrowser.open(f"http://127.0.0.1:{puerto}")
-
-    modo = os.environ.get("FLASK_ENV", "development")
-    if modo == "development":
-        print(f"🚀 Modo desarrollo: Flask corriendo en http://127.0.0.1:{puerto}")
-        from flask import cli
-        cli.show_server_banner = lambda *x: None
-        from werkzeug.serving import run_simple
-        run_simple("127.0.0.1", puerto, app, use_reloader=True, use_debugger=True)
-    else:
-        from waitress import serve
-        print(f"🚀 Modo producción: Waitress corriendo en http://127.0.0.1:{puerto}")
-        serve(app, host="127.0.0.1", port=puerto)
-else:
-    # Para importaciones desde otros módulos
-    app = create_app()
+    port = int(os.getenv("PORT", 5000))
+    debug_mode = os.getenv('FLASK_ENV', 'development') != 'production'
+    print(f"🔧 Modo desarrollo: ejecutando en puerto {port}")
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
 
