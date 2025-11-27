@@ -182,8 +182,9 @@ def cambiar_estado_pedido(idped):
     nuevo_estado = request.form["estado"]
 
     cursor = current_app.db.cursor()
+    # PostgreSQL: usar CALL para procedimientos
     cursor.execute("CALL cambiar_estado_pedido(%s, %s)", (idped, nuevo_estado))
-    current_app.db.commit()
+    cursor.close()
 
     return redirect(url_for("restaurante.detalle_pedido", idped=idped))
 

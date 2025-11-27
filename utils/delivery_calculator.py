@@ -9,7 +9,6 @@ Incluye cálculo de distancia, tiempo estimado, y gestión de ubicaciones.
 import math
 import random
 from datetime import datetime, timedelta
-import MySQLdb
 from flask import current_app
 
 class DeliveryCalculator:

@@ -8,9 +8,8 @@ from routes.admin import admin_bp
 from routes.config import config_bp
 from routes.session import session_bp
 from utils.session_manager import session_manager
-from routes.session import session_bp
-from utils.session_manager import session_manager
-import pymysql.cursors  # ✅ usamos pymysql
+import psycopg2  # ✅ PostgreSQL
+import psycopg2.extras
 from flask_session import Session
 from flask_mail import Mail
 from dotenv import load_dotenv
@@ -39,24 +38,19 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
-    # 🗄️ Configuración de base de datos con reconexión automática
+    # 🗄️ Configuración de base de datos PostgreSQL con reconexión automática
     def get_db_connection():
-        """Obtener conexión a la base de datos con reconexión automática"""
+        """Obtener conexión a la base de datos PostgreSQL con reconexión automática"""
         try:
-            connection = pymysql.connect(
+            connection = psycopg2.connect(
                 host=app.config["DB_HOST"],
                 user=app.config["DB_USER"],
                 password=app.config["DB_PASSWORD"],
                 database=app.config["DB_NAME"],
-                cursorclass=pymysql.cursors.DictCursor,
-                autocommit=True,
-                charset='utf8mb4',
-                connect_timeout=10,
-                read_timeout=10,
-                write_timeout=10
+                cursor_factory=psycopg2.extras.RealDictCursor,
+                connect_timeout=10
             )
-            # Verificar conexión
-            connection.ping(reconnect=True)
+            connection.autocommit = True
             return connection
         except Exception as e:
             print(f"❌ Error conectando a la base de datos: {e}")
@@ -65,12 +59,14 @@ def create_app():
     # Función para obtener conexión segura
     def get_db():
         """Obtener conexión de base de datos con manejo de errores"""
-        if not hasattr(app, 'db') or app.db is None:
+        if not hasattr(app, 'db') or app.db is None or app.db.closed:
             app.db = get_db_connection()
         
         try:
             # Probar la conexión actual
-            app.db.ping(reconnect=True)
+            cursor = app.db.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
             return app.db
         except:
             # Si falla, crear nueva conexión

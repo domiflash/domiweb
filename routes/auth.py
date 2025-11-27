@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-import MySQLdb.cursors
+from utils.auth_helpers import login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils.auth_helpers import login_required
 from utils.password_recovery import recovery_manager
@@ -31,18 +31,18 @@ def verificar_cuenta_bloqueada(db, email):
     """Verificar si una cuenta está bloqueada"""
     try:
         cursor = db.cursor()
-        cursor.callproc("verificar_bloqueo_cuenta", (email, 0, 0, 0))
-        
-        # Obtener resultados del procedimiento
-        cursor.execute("SELECT @_verificar_bloqueo_cuenta_1 as bloqueada, @_verificar_bloqueo_cuenta_2 as intentos, @_verificar_bloqueo_cuenta_3 as tiempo_restante")
+        # PostgreSQL: usar función que retorna tabla
+        cursor.execute("SELECT * FROM verificar_bloqueo_cuenta(%s)", (email,))
         resultado = cursor.fetchone()
         cursor.close()
         
-        return {
-            'bloqueada': bool(resultado['bloqueada']),
-            'intentos': resultado['intentos'],
-            'tiempo_restante': resultado['tiempo_restante']
-        }
+        if resultado:
+            return {
+                'bloqueada': bool(resultado['bloqueada']),
+                'intentos': resultado['intentos'] or 0,
+                'tiempo_restante': resultado['tiempo_restante'] or 0
+            }
+        return {'bloqueada': False, 'intentos': 0, 'tiempo_restante': 0}
     except Exception as e:
         print(f"❌ Error verificando bloqueo: {e}")
         return {'bloqueada': False, 'intentos': 0, 'tiempo_restante': 0}
@@ -53,8 +53,8 @@ def registrar_intento_fallido(db, email, ip, user_agent):
     """Registrar un intento de login fallido"""
     try:
         cursor = db.cursor()
-        cursor.callproc("incrementar_intentos_fallidos", (email, ip, user_agent))
-        db.commit()
+        # PostgreSQL: usar CALL para procedimientos
+        cursor.execute("CALL incrementar_intentos_fallidos(%s, %s, %s)", (email, ip, user_agent))
         cursor.close()
     except Exception as e:
         print(f"❌ Error registrando intento fallido: {e}")
@@ -65,8 +65,8 @@ def registrar_login_exitoso(db, email, ip, user_agent):
     """Registrar un login exitoso y resetear intentos"""
     try:
         cursor = db.cursor()
-        cursor.callproc("login_exitoso", (email, ip, user_agent))
-        db.commit()
+        # PostgreSQL: usar CALL para procedimientos
+        cursor.execute("CALL login_exitoso(%s, %s, %s)", (email, ip, user_agent))
         cursor.close()
     except Exception as e:
         print(f"❌ Error registrando login exitoso: {e}")
@@ -122,12 +122,11 @@ def register():
         try:
             hashed_password = generate_password_hash(password)
 
-            # 👉 Registrar usuario con SP
-            cursor.callproc("registrar_usuario", (nombre, email, hashed_password, direccion, rol))
-            current_app.db.commit()
+            # 👉 Registrar usuario con CALL (PostgreSQL)
+            cursor.execute("CALL registrar_usuario(%s, %s, %s, %s, %s)", (nombre, email, hashed_password, direccion, rol))
 
             # ✅ Obtener el id del usuario recién creado
-            cursor.execute("SELECT LAST_INSERT_ID() AS idusu;")
+            cursor.execute("SELECT idusu FROM usuarios WHERE corusu = %s", (email,))
             nuevo_usuario = cursor.fetchone()
             idusu = nuevo_usuario["idusu"]
 
@@ -137,7 +136,6 @@ def register():
                     "INSERT INTO restaurantes (idusu, nomres, desres, dirres, telres) VALUES (%s, %s, %s, %s, %s)",
                     (idusu, nombre, "Mi restaurante", direccion, "0000000000")
                 )
-                current_app.db.commit()
 
             cursor.close()
 

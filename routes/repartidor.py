@@ -136,8 +136,7 @@ def tomar_pedido(pedido_id):
     
     if repartidor:
         try:
-            cursor.callproc("asignar_repartidor", (pedido_id, repartidor['idrep']))
-            current_app.db.commit()
+            cursor.execute("CALL asignar_repartidor(%s, %s)", (pedido_id, repartidor['idrep']))
             flash(f"Pedido #{pedido_id} asignado exitosamente", "success")
         except Exception as e:
             flash(f"Error al asignar pedido: {str(e)}", "danger")
@@ -153,8 +152,8 @@ def actualizar_estado(pedido_id):
     
     try:
         cursor = current_app.db.cursor()
-        cursor.callproc("cambiar_estado_pedido", (pedido_id, nuevo_estado))
-        current_app.db.commit()
+        cursor.execute("CALL cambiar_estado_pedido(%s, %s)", (pedido_id, nuevo_estado))
+        cursor.close()
         flash(f"Estado del pedido #{pedido_id} actualizado a {nuevo_estado}", "success")
     except Exception as e:
         flash(f"Error al actualizar estado: {str(e)}", "danger")

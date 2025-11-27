@@ -36,13 +36,10 @@ class Config:
     MAX_LOGIN_ATTEMPTS = int(os.getenv("MAX_LOGIN_ATTEMPTS", "5"))  # Máximo 5 intentos
     LOGIN_ATTEMPT_TIMEOUT_MINUTES = int(os.getenv("LOGIN_ATTEMPT_TIMEOUT_MINUTES", "15"))  # Bloqueo 15 min
 
-# Configuración para mysql-connector-python
+# Configuración para PostgreSQL
 DB_CONFIG = {
     'host': Config.DB_HOST,
     'user': Config.DB_USER,
     'password': Config.DB_PASSWORD,
-    'database': Config.DB_NAME,
-    'charset': 'utf8mb4',
-    'collation': 'utf8mb4_general_ci',
-    'autocommit': True
+    'database': Config.DB_NAME
 }

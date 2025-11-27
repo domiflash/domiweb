@@ -6,12 +6,21 @@ Maneja generación de tokens, validación y envío de emails
 import secrets
 import string
 from datetime import datetime, timedelta
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 from config import DB_CONFIG
 from flask import request
 from utils.email_service import email_service
 import hashlib
 import os
+
+
+def get_db_connection():
+    """Obtener conexión a PostgreSQL"""
+    conn = psycopg2.connect(**DB_CONFIG, cursor_factory=psycopg2.extras.RealDictCursor)
+    conn.autocommit = True
+    return conn
+
 
 class PasswordRecoveryManager:
     """Gestor del sistema de recuperación de contraseñas"""
@@ -49,8 +58,8 @@ class PasswordRecoveryManager:
         """
         try:
             # Verificar que el usuario existe y está activo
-            conn = mysql.connector.connect(**DB_CONFIG)
-            cursor = conn.cursor(dictionary=True)
+            conn = get_db_connection()
+            cursor = conn.cursor()
             
             cursor.execute("SELECT nomusu FROM usuarios WHERE corusu = %s AND estusu = 'activo'", (email,))
             user_result = cursor.fetchone()
@@ -158,11 +167,11 @@ class PasswordRecoveryManager:
             }
         """
         try:
-            conn = mysql.connector.connect(**DB_CONFIG)
-            cursor = conn.cursor(dictionary=True)
+            conn = get_db_connection()
+            cursor = conn.cursor()
             
             # Limpiar tokens expirados primero
-            cursor.execute("DELETE FROM tokens_recuperacion WHERE fecha_expiracion < NOW()")
+            cursor.execute("DELETE FROM tokens_recuperacion WHERE fecha_expiracion < CURRENT_TIMESTAMP")
             
             # Validar token usando la estructura actual
             cursor.execute("""
@@ -248,7 +257,7 @@ class PasswordRecoveryManager:
             email = validation['email']
             
             # Conectar y cambiar contraseña
-            conn = mysql.connector.connect(**DB_CONFIG)
+            conn = get_db_connection()
             cursor = conn.cursor()
             
             # Actualizar la contraseña del usuario
@@ -298,11 +307,11 @@ class PasswordRecoveryManager:
     def cleanup_expired_tokens(self):
         """Limpia tokens expirados de la base de datos"""
         try:
-            conn = mysql.connector.connect(**DB_CONFIG)
+            conn = get_db_connection()
             cursor = conn.cursor()
             
             # Limpiar directamente tokens expirados usando la estructura actual
-            cursor.execute("DELETE FROM tokens_recuperacion WHERE fecha_expiracion < NOW()")
+            cursor.execute("DELETE FROM tokens_recuperacion WHERE fecha_expiracion < CURRENT_TIMESTAMP")
             deleted_count = cursor.rowcount
             
             conn.commit()
@@ -319,18 +328,18 @@ class PasswordRecoveryManager:
     def get_recovery_stats(self, days=7):
         """Obtiene estadísticas de recuperación de contraseñas"""
         try:
-            conn = mysql.connector.connect(**DB_CONFIG)
-            cursor = conn.cursor(dictionary=True)
+            conn = get_db_connection()
+            cursor = conn.cursor()
             
             # Estadísticas básicas usando la estructura actual
             cursor.execute("""
                 SELECT 
                     COUNT(*) as total_tokens,
                     COUNT(CASE WHEN usado = TRUE THEN 1 END) as tokens_usados,
-                    COUNT(CASE WHEN fecha_expiracion < NOW() THEN 1 END) as tokens_expirados,
-                    COUNT(CASE WHEN usado = FALSE AND fecha_expiracion >= NOW() THEN 1 END) as tokens_activos
+                    COUNT(CASE WHEN fecha_expiracion < CURRENT_TIMESTAMP THEN 1 END) as tokens_expirados,
+                    COUNT(CASE WHEN usado = FALSE AND fecha_expiracion >= CURRENT_TIMESTAMP THEN 1 END) as tokens_activos
                 FROM tokens_recuperacion 
-                WHERE fecha_creacion >= DATE_SUB(NOW(), INTERVAL %s DAY)
+                WHERE fecha_creacion >= CURRENT_TIMESTAMP - INTERVAL '%s days'
             """, (days,))
             
             stats = cursor.fetchone()

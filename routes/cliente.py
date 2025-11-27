@@ -250,16 +250,15 @@ def checkout():
                 flash(f"Error: No se pueden procesar pedidos sin productos o con monto 0. Items: {num_items}, Total: {total}", "danger")
                 return redirect(url_for("cliente.checkout"))
             
-            # Usar el procedimiento almacenado para confirmar pedido
-            cursor.callproc("confirmar_pedido", (user_id, restaurante_id))
+            # Usar la función confirmar_pedido (PostgreSQL retorna tabla)
+            cursor.execute("SELECT * FROM confirmar_pedido(%s, %s)", (user_id, restaurante_id))
             result = cursor.fetchone()
             
             if result:
                 pedido_id = result['id_pedido_creado']
                 
-                # Registrar pago (ahora ya tenemos el total calculado)
-                cursor.callproc("registrar_pago", (pedido_id, metodo_pago, total))
-                current_app.db.commit()
+                # Registrar pago con CALL
+                cursor.execute("CALL registrar_pago(%s, %s, %s)", (pedido_id, metodo_pago, total))
                 
                 # 🕐 Calcular tiempo estimado de entrega
                 try:
@@ -397,9 +396,9 @@ def actualizar_pago_simulado(pedido_id):
         pago = cursor.fetchone()
         
         if pago:
-            cursor.callproc("actualizar_estado_pago", (pago['idpag'], "pagado"))
-            current_app.db.commit()
+            cursor.execute("CALL actualizar_estado_pago(%s, %s)", (pago['idpag'], "pagado"))
         
+        cursor.close()
         return {"status": "success"}, 200
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
