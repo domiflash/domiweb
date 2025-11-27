@@ -12,7 +12,9 @@ restaurante_bp = Blueprint("restaurante", __name__)
 @login_required
 @role_required("restaurante")
 def listar_productos():
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
 
     if not usuario_id:
@@ -53,7 +55,9 @@ def crear_producto():
 
     # Obtener el idres del restaurante logueado
     usuario_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("SELECT idres FROM restaurantes WHERE idusu = %s", (usuario_id,))
     restaurante = cursor.fetchone()
 
@@ -68,7 +72,7 @@ def crear_producto():
         "INSERT INTO productos (idres, idcat, nompro, despro, prepro, stopro) VALUES (%s, %s, %s, %s, %s, %s)",
         (idres, idcat, nompro, despro, prepro, stopro)
     )
-    current_app.db.commit()
+    db.commit()
     flash("Producto creado exitosamente.", "success")
     return redirect(url_for("restaurante.listar_productos"))
 
@@ -76,7 +80,9 @@ def crear_producto():
 @login_required
 @role_required("restaurante")
 def editar_producto(idpro):
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
 
     if request.method == "POST":
         nompro = request.form["nompro"]
@@ -89,7 +95,7 @@ def editar_producto(idpro):
             "UPDATE productos SET nompro = %s, despro = %s, prepro = %s, stopro = %s, idcat = %s WHERE idpro = %s",
             (nompro, despro, prepro, stopro, idcat, idpro)
         )
-        current_app.db.commit()
+        db.commit()
         return redirect(url_for("restaurante.listar_productos"))
 
     cursor.execute("SELECT * FROM productos WHERE idpro = %s", (idpro,))
@@ -102,9 +108,11 @@ def editar_producto(idpro):
 @login_required
 @role_required("restaurante")
 def eliminar_producto(idpro):
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("DELETE FROM productos WHERE idpro = %s", (idpro,))
-    current_app.db.commit()
+    db.commit()
     return redirect(url_for("restaurante.listar_productos"))
 
 # ----------------------------
@@ -120,7 +128,10 @@ def listar_pedidos():
     if not usuario_id:
         return jsonify({"msg": "No se pudo identificar al usuario logueado."}), 403
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     cursor.execute(
         """
         SELECT p.idped, u.nomusu AS cliente, 
@@ -144,7 +155,9 @@ def listar_pedidos():
 @role_required("restaurante")
 def detalle_pedido(idped):
     """Detalle de un pedido con productos"""
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
 
     # Info general del pedido
     cursor.execute("""
@@ -181,7 +194,10 @@ def cambiar_estado_pedido(idped):
     """Actualizar estado de un pedido"""
     nuevo_estado = request.form["estado"]
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     # PostgreSQL: usar CALL para procedimientos
     cursor.execute("CALL cambiar_estado_pedido(%s, %s)", (idped, nuevo_estado))
     cursor.close()
@@ -196,7 +212,9 @@ def cambiar_estado_pedido(idped):
 @role_required("restaurante")
 def perfil():
     """Permite al restaurante modificar su información."""
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     usuario_id = session.get("usuario_id")  # Usar el id del usuario desde la sesión
 
     if not usuario_id:
@@ -216,7 +234,7 @@ def perfil():
             """,
             (nomres, desres, dirres, telres, usuario_id)
         )
-        current_app.db.commit()
+        db.commit()
         flash("Perfil actualizado exitosamente.", "success")
         return redirect(url_for("restaurante.perfil"))
 

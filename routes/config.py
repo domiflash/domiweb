@@ -29,7 +29,9 @@ def update_profile():
         telefono = request.validated_data.get("telefono", "")
         
         try:
-            cursor = current_app.db.cursor()
+            db = current_app.get_db()
+
+            cursor = db.cursor()
             
             # Actualizar datos del usuario
             cursor.execute("""
@@ -46,7 +48,7 @@ def update_profile():
                     WHERE idusu = %s
                 """, (nombre, direccion, telefono, usuario_id))
             
-            current_app.db.commit()
+            db.commit()
             cursor.close()
             
             flash("✅ Perfil actualizado exitosamente", "success")
@@ -56,7 +58,9 @@ def update_profile():
             flash(f"❌ Error al actualizar perfil: {str(e)}", "error")
     
     # Cargar datos actuales del usuario
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("SELECT * FROM usuarios WHERE idusu = %s", (usuario_id,))
     user_data = cursor.fetchone()
     
@@ -89,7 +93,9 @@ def change_password():
             return render_template("config/change_password.html")
         
         # Verificar contraseña actual
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         cursor.execute("SELECT conusu FROM usuarios WHERE idusu = %s", (usuario_id,))
         user = cursor.fetchone()
         
@@ -120,7 +126,7 @@ def change_password():
                 WHERE idusu = %s
             """, (new_password_hash, usuario_id))
             
-            current_app.db.commit()
+            db.commit()
             cursor.close()
             
             flash("✅ Contraseña cambiada exitosamente", "success")

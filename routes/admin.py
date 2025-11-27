@@ -11,7 +11,9 @@ def test():
 @admin_bp.route("/users", methods=["GET"])
 @role_required("administrador")
 def list_users():
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("SELECT idusu, nomusu, corusu, dirusu, rolusu, estusu FROM usuarios")
     users = cursor.fetchall()
     return render_template("admin/dashboard.html", users=users)
@@ -23,17 +25,20 @@ def update_user(user_id):
     dirusu = request.form["dirusu"]
     rolusu = request.form["rolusu"]
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     try:
         # Actualizar el usuario (sin incluir el email)
         cursor.execute(
             "UPDATE usuarios SET nomusu=%s, dirusu=%s, rolusu=%s WHERE idusu=%s",
             (nomusu, dirusu, rolusu, user_id),
         )
-        current_app.db.commit()
+        db.commit()
         flash("Usuario actualizado correctamente", "success")
     except Exception as e:
-        current_app.db.rollback()
+        db.rollback()
         flash(f"Error al actualizar usuario: {str(e)}", "error")
     finally:
         cursor.close()
@@ -43,9 +48,11 @@ def update_user(user_id):
 @admin_bp.route("/users/deactivate/<int:user_id>", methods=["POST"])
 @role_required("administrador")
 def deactivate_user(user_id):
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("UPDATE usuarios SET estusu='inactivo' WHERE idusu=%s", (user_id,))
-    current_app.db.commit()
+    db.commit()
     flash("Usuario desactivado correctamente", "info")
     return redirect(url_for("admin.list_users"))
 
@@ -53,7 +60,9 @@ def deactivate_user(user_id):
 @login_required
 @role_required('administrador')
 def toggle_user_status(user_id):
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     try:
         current_app.logger.info(f"Attempting to toggle status for user_id: {user_id}")
         cursor.execute("SELECT estusu FROM usuarios WHERE idusu = %s", (user_id,))
@@ -63,13 +72,13 @@ def toggle_user_status(user_id):
             current_app.logger.info(f"User found with id {user_id} and status: {user['estusu']}")
             new_status = 'inactivo' if user['estusu'] == 'activo' else 'activo'
             cursor.execute("UPDATE usuarios SET estusu = %s WHERE idusu = %s", (new_status, user_id))
-            current_app.db.commit()
+            db.commit()
             flash(f"El estado del usuario ha sido cambiado a {new_status}.", "success")
         else:
             current_app.logger.error(f"No user found with id {user_id}. Query result: {user}")
             flash("Usuario no encontrado.", "error")
     except Exception as e:
-        current_app.db.rollback()
+        db.rollback()
         flash("Ocurrió un error al cambiar el estado del usuario.", "error")
         current_app.logger.error(f"Error in toggle_user_status: {e}")
     finally:
@@ -80,7 +89,9 @@ def toggle_user_status(user_id):
 @admin_bp.route("/categories", methods=["GET"])
 @role_required("administrador")
 def list_categories():
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("SELECT idcat, tipcat FROM categorias")
     categories = cursor.fetchall()
     return render_template("admin/categories.html", categories=categories)
@@ -90,13 +101,16 @@ def list_categories():
 def add_category():
     tipcat = request.form["tipcat"]
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     try:
         cursor.execute("INSERT INTO categorias (tipcat) VALUES (%s)", (tipcat,))
-        current_app.db.commit()
+        db.commit()
         flash("Categoría agregada correctamente", "success")
     except Exception as e:
-        current_app.db.rollback()
+        db.rollback()
         flash("Error al agregar la categoría: " + str(e), "danger")
     finally:
         cursor.close()

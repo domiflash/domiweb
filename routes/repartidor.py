@@ -14,7 +14,9 @@ def test():
 def dashboard():
     """Dashboard con estadísticas del repartidor."""
     usuario_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     # Obtener ID del repartidor
     cursor.execute("SELECT idrep FROM repartidores WHERE idusu = %s", (usuario_id,))
@@ -67,7 +69,9 @@ def dashboard():
 def listar_pedidos():
     """Lista pedidos disponibles para asignar o ya asignados al repartidor."""
     usuario_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     # Verificar si el usuario tiene registro de repartidor
     cursor.execute("SELECT idrep FROM repartidores WHERE idusu = %s", (usuario_id,))
@@ -81,7 +85,7 @@ def listar_pedidos():
             INSERT INTO repartidores (idusu, nomrep, vehrep, estrep) 
             VALUES (%s, %s, 'Vehículo por definir', 'activo')
         """, (usuario_id, usuario['nomusu']))
-        current_app.db.commit()
+        db.commit()
         
         cursor.execute("SELECT idrep FROM repartidores WHERE idusu = %s", (usuario_id,))
         repartidor = cursor.fetchone()
@@ -128,7 +132,9 @@ def listar_pedidos():
 def tomar_pedido(pedido_id):
     """Asigna un pedido al repartidor actual."""
     usuario_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     # Obtener ID del repartidor
     cursor.execute("SELECT idrep FROM repartidores WHERE idusu = %s", (usuario_id,))
@@ -151,7 +157,9 @@ def actualizar_estado(pedido_id):
     nuevo_estado = request.form.get("estado")
     
     try:
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         cursor.execute("CALL cambiar_estado_pedido(%s, %s)", (pedido_id, nuevo_estado))
         cursor.close()
         flash(f"Estado del pedido #{pedido_id} actualizado a {nuevo_estado}", "success")
@@ -166,7 +174,9 @@ def actualizar_estado(pedido_id):
 def perfil():
     """Gestión del perfil del repartidor."""
     usuario_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     if request.method == "POST":
         nomrep = request.form["nomrep"]
@@ -175,7 +185,7 @@ def perfil():
         cursor.execute("""
             UPDATE repartidores SET nomrep = %s, vehrep = %s WHERE idusu = %s
         """, (nomrep, vehrep, usuario_id))
-        current_app.db.commit()
+        db.commit()
         flash("Perfil actualizado correctamente", "success")
     
     cursor.execute("SELECT nomrep, vehrep, estrep FROM repartidores WHERE idusu = %s", (usuario_id,))
@@ -189,7 +199,7 @@ def perfil():
             INSERT INTO repartidores (idusu, nomrep, vehrep, estrep) 
             VALUES (%s, %s, 'Por definir', 'activo')
         """, (usuario_id, usuario['nomusu']))
-        current_app.db.commit()
+        db.commit()
         
         cursor.execute("SELECT nomrep, vehrep, estrep FROM repartidores WHERE idusu = %s", (usuario_id,))
         repartidor = cursor.fetchone()

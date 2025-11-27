@@ -17,7 +17,8 @@ def test():
 # @login_required
 # @role_required("cliente")
 # def menu():
-#     cursor = current_app.db.cursor()
+#     db = current_app.get_db()
+     cursor = db.cursor()
 #     cursor.execute("SELECT idpro, nompro, despro, prepro FROM productos")
 #     productos = cursor.fetchall()
 #     return render_template("cliente/menu.html", productos=productos)
@@ -25,7 +26,9 @@ def test():
 @login_required
 @role_required("cliente")
 def menu():
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     # Obtener restaurantes y sus productos
     cursor.execute("""
@@ -64,7 +67,9 @@ def menu():
 def mostrar_carrito():
     """Muestra los productos en el carrito del cliente."""
     user_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     cursor.execute("""
         SELECT c.idpro, p.nompro, p.prepro, c.canprocar
         FROM carritos c
@@ -83,7 +88,10 @@ def agregar_al_carrito():
     producto_id = request.form.get("producto_id")
     cantidad = int(request.form.get("cantidad", 1))
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     # Verificar el stock disponible
     cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
     producto = cursor.fetchone()
@@ -114,7 +122,7 @@ def agregar_al_carrito():
             VALUES (%s, %s, %s)
         """, (user_id, producto_id, cantidad))
 
-    current_app.db.commit()
+    db.commit()
     return redirect(url_for("cliente.mostrar_carrito"))
 
 
@@ -127,7 +135,10 @@ def actualizar_carrito():
     producto_id = request.form.get("producto_id")
     nueva_cantidad = int(request.form.get("cantidad"))
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     # Verificar el stock disponible
     cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
     producto = cursor.fetchone()
@@ -143,7 +154,7 @@ def actualizar_carrito():
     cursor.execute("""
         UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
     """, (nueva_cantidad, user_id, producto_id))
-    current_app.db.commit()
+    db.commit()
     return redirect(url_for("cliente.mostrar_carrito"))
 
 
@@ -155,11 +166,14 @@ def eliminar_del_carrito():
     user_id = session.get("usuario_id")
     producto_id = request.form.get("producto_id")
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     cursor.execute("""
         DELETE FROM carritos WHERE idusu = %s AND idpro = %s
     """, (user_id, producto_id))
-    current_app.db.commit()
+    db.commit()
     return redirect(url_for("cliente.mostrar_carrito"))
 
 
@@ -170,11 +184,14 @@ def vaciar_carrito():
     """Vacía el carrito del cliente."""
     user_id = session.get("usuario_id")
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     cursor.execute("""
         DELETE FROM carritos WHERE idusu = %s
     """, (user_id,))
-    current_app.db.commit()
+    db.commit()
     return redirect(url_for("cliente.mostrar_carrito"))
 
 # Perfil del Cliente
@@ -186,15 +203,21 @@ def perfil():
         nombre = request.form["nombre"]
         direccion = request.form["direccion"]
 
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+
+        cursor = db.cursor()
         cursor.execute(
             "UPDATE usuarios SET nomusu=%s, dirusu=%s WHERE idusu=%s",
             (nombre, direccion, session["usuario_id"]),
         )
-        current_app.db.commit()
+        db.commit()
         flash("Perfil actualizado correctamente", "success")
 
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+
+    cursor = db.cursor()
     cursor.execute("SELECT nomusu, corusu, dirusu FROM usuarios WHERE idusu=%s", (session["usuario_id"],))
     usuario = cursor.fetchone()
     return render_template("cliente/perfil.html", usuario=usuario)
@@ -206,7 +229,9 @@ def perfil():
 def checkout():
     """Proceso de checkout para finalizar pedido."""
     user_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     if request.method == "POST":
         # Obtener datos del formulario
@@ -329,7 +354,9 @@ def checkout():
 def mis_pedidos():
     """Muestra el historial de pedidos del cliente con tiempo estimado."""
     user_id = session.get("usuario_id")
-    cursor = current_app.db.cursor()
+    db = current_app.get_db()
+
+    cursor = db.cursor()
     
     cursor.execute("""
         SELECT p.idped, r.nomres, p.estped, p.fecha_creacion,
@@ -389,7 +416,9 @@ def pago_exitoso():
 def actualizar_pago_simulado(pedido_id):
     """Simula la actualización del estado del pago."""
     try:
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         
         # Obtener el ID del pago asociado al pedido
         cursor.execute("SELECT idpag FROM pagos WHERE idped = %s", (pedido_id,))

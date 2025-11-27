@@ -110,7 +110,8 @@ def register():
             return render_template("auth/register.html")
 
         # Verificar si el email ya existe
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+        cursor = db.cursor()
         cursor.execute("SELECT idusu FROM usuarios WHERE corusu = %s", (email,))
         existing_user = cursor.fetchone()
         
@@ -123,6 +124,8 @@ def register():
             hashed_password = generate_password_hash(password)
 
             # 👉 Registrar usuario con CALL (PostgreSQL)
+            db = current_app.get_db()
+            cursor = db.cursor()
             cursor.execute("CALL registrar_usuario(%s, %s, %s, %s, %s)", (nombre, email, hashed_password, direccion, rol))
 
             # ✅ Obtener el id del usuario recién creado

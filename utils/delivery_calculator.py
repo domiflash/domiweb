@@ -109,7 +109,9 @@ class DeliveryCalculator:
     @staticmethod
     def obtener_ubicacion_restaurante(idres):
         """Obtiene las coordenadas del restaurante desde la BD"""
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         cursor.execute("""
             SELECT lat_restaurante, lng_restaurante, nomres
             FROM restaurantes 
@@ -126,7 +128,9 @@ class DeliveryCalculator:
     @staticmethod
     def obtener_ubicacion_usuario(idusu):
         """Obtiene o genera ubicación del usuario"""
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         cursor.execute("""
             SELECT lat_usuario, lng_usuario 
             FROM usuarios 
@@ -145,7 +149,7 @@ class DeliveryCalculator:
                 WHERE idusu = %s
             """, (lat, lng, idusu))
             
-            current_app.db.commit()
+            db.commit()
             cursor.close()
             return lat, lng
         
@@ -157,7 +161,9 @@ class DeliveryCalculator:
         """
         Función principal: calcula tiempo estimado para un pedido específico
         """
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         
         # Obtener datos del pedido
         cursor.execute("""
@@ -194,14 +200,16 @@ class DeliveryCalculator:
             hora_estimada = datetime.now() + timedelta(minutes=tiempo_estimado)
             
             # Actualizar en la base de datos
-            cursor = current_app.db.cursor()
+            db = current_app.get_db()
+
+            cursor = db.cursor()
             cursor.execute("""
                 UPDATE pedidos 
                 SET tiempo_estimado_minutos = %s, hora_estimada_entrega = %s
                 WHERE idped = %s
             """, (tiempo_estimado, hora_estimada, idped))
             
-            current_app.db.commit()
+            db.commit()
             cursor.close()
             
             return {
@@ -232,7 +240,9 @@ class DeliveryCalculator:
         """
         Obtiene el estado actual del pedido con información de tiempo
         """
-        cursor = current_app.db.cursor()
+        db = current_app.get_db()
+
+        cursor = db.cursor()
         cursor.execute("""
             SELECT estped, tiempo_estimado_minutos, hora_estimada_entrega, fecha_creacion
             FROM pedidos 
