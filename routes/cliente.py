@@ -86,44 +86,61 @@ def agregar_al_carrito():
     """Agrega un producto al carrito."""
     user_id = session.get("usuario_id")
     producto_id = request.form.get("producto_id")
-    cantidad = int(request.form.get("cantidad", 1))
+    
+    try:
+        cantidad = int(request.form.get("cantidad", 1))
+    except (ValueError, TypeError):
+        flash("Cantidad inválida.", "danger")
+        return redirect(url_for("cliente.menu"))
 
     db = current_app.get_db()
-
-
     cursor = db.cursor()
-    # Verificar el stock disponible
-    cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
-    producto = cursor.fetchone()
+    
+    try:
+        # Verificar el stock disponible
+        cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
+        producto = cursor.fetchone()
 
-    if not producto or cantidad > producto['stopro']:
-        flash("La cantidad solicitada excede el stock disponible.", "danger")
+        if not producto:
+            flash("Producto no encontrado.", "danger")
+            return redirect(url_for("cliente.menu"))
+            
+        if cantidad > producto['stopro']:
+            flash("La cantidad solicitada excede el stock disponible.", "danger")
+            return redirect(url_for("cliente.menu"))
+
+        # Verificar si el producto ya está en el carrito
+        cursor.execute("""
+            SELECT canprocar FROM carritos WHERE idusu = %s AND idpro = %s
+        """, (user_id, producto_id))
+        resultado = cursor.fetchone()
+
+        if resultado:
+            # Actualizar la cantidad si ya existe
+            nueva_cantidad = resultado['canprocar'] + cantidad
+            if nueva_cantidad > producto['stopro']:
+                flash("La cantidad total excede el stock disponible.", "danger")
+                return redirect(url_for("cliente.mostrar_carrito"))
+            cursor.execute("""
+                UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
+            """, (nueva_cantidad, user_id, producto_id))
+        else:
+            # Insertar un nuevo producto en el carrito
+            cursor.execute("""
+                INSERT INTO carritos (idusu, idpro, canprocar)
+                VALUES (%s, %s, %s)
+            """, (user_id, producto_id, cantidad))
+
+        # ✅ Con autocommit=True, no necesita db.commit()
+        flash("Producto agregado al carrito exitosamente.", "success")
         return redirect(url_for("cliente.mostrar_carrito"))
-
-    # Verificar si el producto ya está en el carrito
-    cursor.execute("""
-        SELECT canprocar FROM carritos WHERE idusu = %s AND idpro = %s
-    """, (user_id, producto_id))
-    resultado = cursor.fetchone()
-
-    if resultado:
-        # Actualizar la cantidad si ya existe
-        nueva_cantidad = resultado['canprocar'] + cantidad
-        if nueva_cantidad > producto['stopro']:
-            flash("La cantidad total excede el stock disponible.", "danger")
-            return redirect(url_for("cliente.mostrar_carrito"))
-        cursor.execute("""
-            UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
-        """, (nueva_cantidad, user_id, producto_id))
-    else:
-        # Insertar un nuevo producto en el carrito
-        cursor.execute("""
-            INSERT INTO carritos (idusu, idpro, canprocar)
-            VALUES (%s, %s, %s)
-        """, (user_id, producto_id, cantidad))
-
-    db.commit()
-    return redirect(url_for("cliente.mostrar_carrito"))
+        
+    except Exception as e:
+        print(f"❌ Error agregando al carrito: {e}")
+        flash(f"Error al agregar producto al carrito: {str(e)}", "danger")
+        return redirect(url_for("cliente.menu"))
+    finally:
+        cursor.close()
 
 
 @cliente_bp.route("/carrito/actualizar", methods=["POST"])
@@ -133,29 +150,51 @@ def actualizar_carrito():
     """Actualiza la cantidad de un producto en el carrito."""
     user_id = session.get("usuario_id")
     producto_id = request.form.get("producto_id")
-    nueva_cantidad = int(request.form.get("cantidad"))
-
-    db = current_app.get_db()
-
-
-    cursor = db.cursor()
-    # Verificar el stock disponible
-    cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
-    producto = cursor.fetchone()
-
-    if not producto or nueva_cantidad > producto['stopro']:
-        flash("La cantidad solicitada excede el stock disponible.", "danger")
+    
+    try:
+        nueva_cantidad = int(request.form.get("cantidad"))
+    except (ValueError, TypeError):
+        flash("Cantidad inválida.", "danger")
         return redirect(url_for("cliente.mostrar_carrito"))
 
-    if nueva_cantidad <= 0:
+    db = current_app.get_db()
+    cursor = db.cursor()
+    
+    try:
         # Si la cantidad es 0 o menor, eliminar el producto
-        return eliminar_del_carrito()
+        if nueva_cantidad <= 0:
+            cursor.execute("""
+                DELETE FROM carritos WHERE idusu = %s AND idpro = %s
+            """, (user_id, producto_id))
+            flash("Producto eliminado del carrito.", "info")
+            return redirect(url_for("cliente.mostrar_carrito"))
+        
+        # Verificar el stock disponible
+        cursor.execute("SELECT stopro FROM productos WHERE idpro = %s", (producto_id,))
+        producto = cursor.fetchone()
 
-    cursor.execute("""
-        UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
-    """, (nueva_cantidad, user_id, producto_id))
-    db.commit()
-    return redirect(url_for("cliente.mostrar_carrito"))
+        if not producto:
+            flash("Producto no encontrado.", "danger")
+            return redirect(url_for("cliente.mostrar_carrito"))
+            
+        if nueva_cantidad > producto['stopro']:
+            flash("La cantidad solicitada excede el stock disponible.", "danger")
+            return redirect(url_for("cliente.mostrar_carrito"))
+
+        cursor.execute("""
+            UPDATE carritos SET canprocar = %s WHERE idusu = %s AND idpro = %s
+        """, (nueva_cantidad, user_id, producto_id))
+        
+        # ✅ Con autocommit=True, no necesita db.commit()
+        flash("Carrito actualizado exitosamente.", "success")
+        return redirect(url_for("cliente.mostrar_carrito"))
+        
+    except Exception as e:
+        print(f"❌ Error actualizando carrito: {e}")
+        flash(f"Error al actualizar carrito: {str(e)}", "danger")
+        return redirect(url_for("cliente.mostrar_carrito"))
+    finally:
+        cursor.close()
 
 
 @cliente_bp.route("/carrito/eliminar", methods=["POST"])
@@ -167,14 +206,23 @@ def eliminar_del_carrito():
     producto_id = request.form.get("producto_id")
 
     db = current_app.get_db()
-
-
     cursor = db.cursor()
-    cursor.execute("""
-        DELETE FROM carritos WHERE idusu = %s AND idpro = %s
-    """, (user_id, producto_id))
-    db.commit()
-    return redirect(url_for("cliente.mostrar_carrito"))
+    
+    try:
+        cursor.execute("""
+            DELETE FROM carritos WHERE idusu = %s AND idpro = %s
+        """, (user_id, producto_id))
+        
+        # ✅ Con autocommit=True, no necesita db.commit()
+        flash("Producto eliminado del carrito.", "info")
+        return redirect(url_for("cliente.mostrar_carrito"))
+        
+    except Exception as e:
+        print(f"❌ Error eliminando del carrito: {e}")
+        flash(f"Error al eliminar producto: {str(e)}", "danger")
+        return redirect(url_for("cliente.mostrar_carrito"))
+    finally:
+        cursor.close()
 
 
 @cliente_bp.route("/carrito/vaciar", methods=["POST"])
@@ -185,14 +233,23 @@ def vaciar_carrito():
     user_id = session.get("usuario_id")
 
     db = current_app.get_db()
-
-
     cursor = db.cursor()
-    cursor.execute("""
-        DELETE FROM carritos WHERE idusu = %s
-    """, (user_id,))
-    db.commit()
-    return redirect(url_for("cliente.mostrar_carrito"))
+    
+    try:
+        cursor.execute("""
+            DELETE FROM carritos WHERE idusu = %s
+        """, (user_id,))
+        
+        # ✅ Con autocommit=True, no necesita db.commit()
+        flash("Carrito vaciado exitosamente.", "info")
+        return redirect(url_for("cliente.mostrar_carrito"))
+        
+    except Exception as e:
+        print(f"❌ Error vaciando carrito: {e}")
+        flash(f"Error al vaciar carrito: {str(e)}", "danger")
+        return redirect(url_for("cliente.mostrar_carrito"))
+    finally:
+        cursor.close()
 
 # Perfil del Cliente
 @cliente_bp.route("/perfil", methods=["GET", "POST"])
