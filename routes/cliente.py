@@ -339,8 +339,8 @@ def checkout():
             if result:
                 pedido_id = result['id_pedido_creado']
                 
-                # Registrar pago con CALL (cast explícito para ENUM)
-                cursor.execute("CALL registrar_pago(%s, %s::metodo_pago, %s)", (pedido_id, metodo_pago, total))
+                # Registrar pago con CALL (cast explícito para todos los tipos)
+                cursor.execute("CALL registrar_pago(%s::INT, %s::metodo_pago, %s::DECIMAL)", (pedido_id, metodo_pago, total))
                 
                 # 🕐 Calcular tiempo estimado de entrega
                 try:
