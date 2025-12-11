@@ -30,24 +30,26 @@ def menu():
 
     cursor = db.cursor()
     
-    # Obtener restaurantes y sus productos
+    # Obtener restaurantes con sus productos y categorías
     cursor.execute("""
-        SELECT r.idres, r.nomres, p.idpro, p.nompro, p.despro, p.prepro
+        SELECT r.idres, r.nomres, p.idpro, p.nompro, p.despro, p.prepro, c.tipcat
         FROM restaurantes r
         LEFT JOIN productos p ON r.idres = p.idres
+        LEFT JOIN categorias c ON p.idcat = c.idcat
         WHERE r.estres = 'activo'
         ORDER BY r.nomres, p.nompro
     """)
     data = cursor.fetchall()
     
-    # Agrupar productos por restaurante
+    # Agrupar productos por restaurante y determinar categorías
     restaurantes = {}
     for row in data:
         idres = row['idres']
         if idres not in restaurantes:
             restaurantes[idres] = {
                 'nombre': row['nomres'],
-                'productos': []
+                'productos': [],
+                'categorias': set()
             }
         if row['idpro']:  # Si el restaurante tiene productos
             restaurantes[idres]['productos'].append({
@@ -56,6 +58,13 @@ def menu():
                 'despro': row['despro'],
                 'prepro': row['prepro']
             })
+            # Agregar categoría al conjunto
+            if row['tipcat']:
+                restaurantes[idres]['categorias'].add(row['tipcat'])
+    
+    # Convertir sets a listas para el template
+    for idres in restaurantes:
+        restaurantes[idres]['categorias'] = list(restaurantes[idres]['categorias'])
     
     # Pasar la variable `restaurantes` a la plantilla
     return render_template("cliente/menu.html", restaurantes=restaurantes)

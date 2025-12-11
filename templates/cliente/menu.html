@@ -87,7 +87,9 @@
       {% for idres, restaurante in restaurantes.items() %}
       <div class="restaurant-card dark-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
            data-restaurant-id="{{ idres }}"
-           data-category="rapida">
+           data-category="{{ restaurante.categorias|join(' ')|lower }}"
+           data-name="{{ restaurante.nombre|lower }}"
+           data-products="{{ restaurante.productos|length }}">
         <!-- Imagen del restaurante -->
         <div class="relative h-48 bg-gradient-to-br from-domi-orange to-domi-red overflow-hidden">
           <div class="absolute inset-0 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-300">
@@ -265,7 +267,7 @@
 </style>
 
 <script>
-// Funcionalidad de búsqueda y filtros (se expandirá en JavaScript principal)
+// Funcionalidad de búsqueda y filtros
 document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('search-restaurants');
   const filterBtns = document.querySelectorAll('.filter-btn');
@@ -273,17 +275,115 @@ document.addEventListener('DOMContentLoaded', function() {
   const restaurantCards = document.querySelectorAll('.restaurant-card');
   const noResults = document.getElementById('no-results');
   const resultsCount = document.getElementById('results-count');
+  const restaurantsGrid = document.getElementById('restaurants-grid');
 
-  // Funcionalidad básica de filtros
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  // Mapeo de filtros a categorías
+  const filterMap = {
+    'rapida': ['comida rápida', 'hamburguesas', 'pizza'],
+    'italiana': ['pizza', 'pasta'],
+    'mexicana': ['comida mexicana'],
+    'asiatica': ['comida china']
+  };
+
+  function applyFilters() {
+    let visibleCount = 0;
+    
+    restaurantCards.forEach(card => {
+      const category = card.dataset.category || '';
+      const name = card.dataset.name || '';
+      
+      // Filtro de búsqueda
+      const matchesSearch = currentSearch === '' || 
+                           name.includes(currentSearch.toLowerCase());
+      
+      // Filtro de categoría
+      let matchesCategory = currentFilter === 'all';
+      if (!matchesCategory && filterMap[currentFilter]) {
+        matchesCategory = filterMap[currentFilter].some(cat => 
+          category.includes(cat.toLowerCase())
+        );
+      }
+      
+      // Mostrar u ocultar card
+      if (matchesSearch && matchesCategory) {
+        card.style.display = '';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    
+    // Actualizar contador y mensaje de no resultados
+    resultsCount.textContent = visibleCount;
+    if (visibleCount === 0) {
+      restaurantsGrid.style.display = 'none';
+      noResults.classList.remove('hidden');
+    } else {
+      restaurantsGrid.style.display = 'grid';
+      noResults.classList.add('hidden');
+    }
+  }
+
+  // Event listener para búsqueda
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      currentSearch = e.target.value;
+      applyFilters();
+    });
+  }
+
+  // Event listener para filtros de categoría
   filterBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       filterBtns.forEach(b => b.classList.remove('active'));
       this.classList.add('active');
-      
-      // Aquí se implementaría la lógica de filtrado
-      console.log('Filtro seleccionado:', this.dataset.filter);
+      currentFilter = this.dataset.filter;
+      applyFilters();
     });
   });
+
+  // Event listener para ordenar
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function() {
+      const cardsArray = Array.from(restaurantCards);
+      const sortBy = this.value;
+      
+      cardsArray.sort((a, b) => {
+        switch(sortBy) {
+          case 'popular':
+            // Ordenar por cantidad de productos (simulado)
+            return parseInt(b.dataset.products || 0) - parseInt(a.dataset.products || 0);
+          case 'rating':
+            // Mantener orden actual (ya que no tenemos ratings reales)
+            return 0;
+          case 'delivery':
+            // Orden alfabético por ahora
+            return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+          case 'price':
+            // Orden alfabético inverso por ahora
+            return (b.dataset.name || '').localeCompare(a.dataset.name || '');
+          default:
+            return 0;
+        }
+      });
+      
+      // Reordenar en el DOM
+      const grid = restaurantsGrid;
+      cardsArray.forEach(card => {
+        // Buscar el contenedor de productos asociado
+        const productosDiv = card.nextElementSibling;
+        if (productosDiv && productosDiv.id && productosDiv.id.startsWith('productos-')) {
+          grid.appendChild(card);
+          grid.appendChild(productosDiv);
+        } else {
+          grid.appendChild(card);
+        }
+      });
+    });
+  }
 
   // Animación de carga de cards
   restaurantCards.forEach((card, index) => {
@@ -306,25 +406,26 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.innerHTML = '<span class="flex items-center justify-center gap-1"><span>⏳</span><span>Agregando...</span></span>';
       btn.disabled = true;
       
-      // Restaurar después de 2 segundos (simulación)
+      // Restaurar después de 1 segundo (el form se enviará normalmente)
       setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        
-        // Mostrar notificación
         if (window.showToast) {
           window.showToast('¡Producto agregado al carrito!', 'success');
         }
-      }, 1000);
+      }, 500);
     });
   });
 });
 
 function clearFilters() {
   document.getElementById('search-restaurants').value = '';
-  document.querySelector('.filter-btn.active').classList.remove('active');
-  document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+  document.querySelector('.filter-btn.active')?.classList.remove('active');
+  document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
   document.getElementById('sort-restaurants').value = 'popular';
+  
+  // Disparar evento para aplicar filtros
+  const event = new Event('input');
+  document.getElementById('search-restaurants').dispatchEvent(event);
+  document.querySelector('.filter-btn[data-filter="all"]')?.click();
 }
 </script>
 {% endblock %}
