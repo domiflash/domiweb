@@ -19,57 +19,7 @@
   </div>
 </section>
 
-<!-- Barra de búsqueda y filtros -->
-<section class="dark-bg dark-border-b py-6">
-  <div class="container mx-auto px-6">
-    <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
-      <!-- Búsqueda -->
-      <div class="flex-1 max-w-md">
-        <div class="relative">
-          <input type="text" 
-                 id="search-restaurants"
-                 placeholder="Buscar restaurantes o comida..." 
-                 class="input pl-10">
-          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 dark-text-secondary">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Filtros -->
-      <div class="flex gap-3 flex-wrap">
-        <button class="filter-btn active" data-filter="all">
-          <span>🍽️</span> Todos
-        </button>
-        <button class="filter-btn" data-filter="rapida">
-          <span>⚡</span> Comida Rápida
-        </button>
-        <button class="filter-btn" data-filter="italiana">
-          <span>🍕</span> Italiana
-        </button>
-        <button class="filter-btn" data-filter="mexicana">
-          <span>🌮</span> Mexicana
-        </button>
-        <button class="filter-btn" data-filter="asiatica">
-          <span>🍜</span> Asiática
-        </button>
-      </div>
-      
-      <!-- Ordenar -->
-      <div class="flex items-center gap-2">
-        <span class="dark-text-secondary text-sm font-medium">Ordenar:</span>
-        <select id="sort-restaurants" class="input text-sm">
-          <option value="popular">Más Popular</option>
-          <option value="rating">Mejor Calificados</option>
-          <option value="delivery">Tiempo de Entrega</option>
-          <option value="price">Precio</option>
-        </select>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- Grid de restaurantes -->
 <section class="py-12 dark-bg">
@@ -77,19 +27,15 @@
     <!-- Contador de resultados -->
     <div class="mb-8">
       <p class="dark-text-secondary">
-        <span class="font-semibold dark-text" id="results-count">{{ restaurantes|length }}</span> 
-        restaurantes encontrados
+        <span class="font-semibold dark-text">{{ restaurantes|length }}</span> 
+        restaurantes disponibles
       </p>
     </div>
     
     <!-- Grid responsivo -->
-    <div id="restaurants-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {% for idres, restaurante in restaurantes.items() %}
-      <div class="restaurant-card dark-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
-           data-restaurant-id="{{ idres }}"
-           data-category="{{ restaurante.categorias|join(' ')|lower }}"
-           data-name="{{ restaurante.nombre|lower }}"
-           data-products="{{ restaurante.productos|length }}">
+      <div class="restaurant-card dark-card hover:shadow-2xl transition-all duration-300 group cursor-pointer">
         <!-- Imagen del restaurante -->
         <div class="relative h-48 bg-gradient-to-br from-domi-orange to-domi-red overflow-hidden">
           <div class="absolute inset-0 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-300">
@@ -241,163 +187,17 @@
       </div>
       {% endfor %}
     </div>
-    
-    <!-- Estado vacío -->
-    <div id="no-results" class="hidden text-center py-16">
-      <div class="text-6xl mb-4">🔍</div>
-      <h3 class="text-2xl font-bold text-gray-600 mb-2">No encontramos restaurantes</h3>
-      <p class="text-gray-500 mb-6">Prueba ajustando tus filtros o busca algo diferente.</p>
-      <button onclick="clearFilters()" class="bg-domi-orange text-white px-6 py-3 rounded-full font-medium hover:bg-domi-red transition-colors">
-        Limpiar filtros
-      </button>
-    </div>
   </div>
 </section>
 
 <style>
-.filter-btn {
-  @apply px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-domi-orange hover:text-domi-orange transition-all duration-200 flex items-center gap-2 text-sm font-medium;
-}
-.filter-btn.active {
-  @apply bg-domi-orange text-white border-domi-orange;
-}
 .restaurant-card:hover .group-hover\:scale-110 {
   transform: scale(1.1);
 }
 </style>
 
 <script>
-// Funcionalidad de búsqueda y filtros
 document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById('search-restaurants');
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const sortSelect = document.getElementById('sort-restaurants');
-  const restaurantCards = document.querySelectorAll('.restaurant-card');
-  const noResults = document.getElementById('no-results');
-  const resultsCount = document.getElementById('results-count');
-  const restaurantsGrid = document.getElementById('restaurants-grid');
-
-  let currentFilter = 'all';
-  let currentSearch = '';
-
-  // Mapeo de filtros a categorías
-  const filterMap = {
-    'rapida': ['comida rápida', 'hamburguesas', 'pizza'],
-    'italiana': ['pizza', 'pasta'],
-    'mexicana': ['comida mexicana'],
-    'asiatica': ['comida china']
-  };
-
-  function applyFilters() {
-    let visibleCount = 0;
-    
-    restaurantCards.forEach(card => {
-      const category = card.dataset.category || '';
-      const name = card.dataset.name || '';
-      const restaurantId = card.dataset.restaurantId;
-      
-      // Filtro de búsqueda
-      const matchesSearch = currentSearch === '' || 
-                           name.includes(currentSearch.toLowerCase());
-      
-      // Filtro de categoría
-      let matchesCategory = currentFilter === 'all';
-      if (!matchesCategory && filterMap[currentFilter]) {
-        matchesCategory = filterMap[currentFilter].some(cat => 
-          category.includes(cat.toLowerCase())
-        );
-      }
-      
-      // Mostrar u ocultar card y su panel de productos
-      if (matchesSearch && matchesCategory) {
-        card.style.display = '';
-        visibleCount++;
-      } else {
-        card.style.display = 'none';
-        // Ocultar también el panel de productos si existe
-        const productosPanel = document.getElementById('productos-' + restaurantId);
-        if (productosPanel) {
-          productosPanel.style.display = 'none';
-          productosPanel.classList.add('hidden');
-        }
-      }
-    });
-    
-    // Actualizar contador y mensaje de no resultados
-    resultsCount.textContent = visibleCount;
-    if (visibleCount === 0) {
-      restaurantsGrid.style.display = 'none';
-      noResults.classList.remove('hidden');
-    } else {
-      restaurantsGrid.style.display = 'grid';
-      noResults.classList.add('hidden');
-    }
-  }
-
-  // Event listener para búsqueda
-  if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-      currentSearch = e.target.value;
-      applyFilters();
-    });
-  }
-
-  // Event listener para filtros de categoría
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      currentFilter = this.dataset.filter;
-      applyFilters();
-    });
-  });
-
-  // Event listener para ordenar
-  if (sortSelect) {
-    sortSelect.addEventListener('change', function() {
-      const cardsArray = Array.from(restaurantCards);
-      const sortBy = this.value;
-      
-      cardsArray.sort((a, b) => {
-        switch(sortBy) {
-          case 'popular':
-            // Ordenar por cantidad de productos (simulado)
-            return parseInt(b.dataset.products || 0) - parseInt(a.dataset.products || 0);
-          case 'rating':
-            // Mantener orden actual (ya que no tenemos ratings reales)
-            return 0;
-          case 'delivery':
-            // Orden alfabético por ahora
-            return (a.dataset.name || '').localeCompare(b.dataset.name || '');
-          case 'price':
-            // Orden alfabético inverso por ahora
-            return (b.dataset.name || '').localeCompare(a.dataset.name || '');
-          default:
-            return 0;
-        }
-      });
-      
-      // Reordenar en el DOM
-      const grid = restaurantsGrid;
-      cardsArray.forEach(card => {
-        // Buscar el contenedor de productos asociado
-        const productosDiv = card.nextElementSibling;
-        if (productosDiv && productosDiv.id && productosDiv.id.startsWith('productos-')) {
-          grid.appendChild(card);
-          grid.appendChild(productosDiv);
-        } else {
-          grid.appendChild(card);
-        }
-      });
-    });
-  }
-
-  // Animación de carga de cards
-  restaurantCards.forEach((card, index) => {
-    card.style.opacity = '1';
-    card.style.transform = 'translateY(0)';
-  });
-  
   // Mejorar formularios de agregar al carrito
   document.querySelectorAll('.add-to-cart-form').forEach(form => {
     form.addEventListener('submit', function(e) {
@@ -416,17 +216,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
-
-function clearFilters() {
-  document.getElementById('search-restaurants').value = '';
-  document.querySelector('.filter-btn.active')?.classList.remove('active');
-  document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
-  document.getElementById('sort-restaurants').value = 'popular';
-  
-  // Disparar evento para aplicar filtros
-  const event = new Event('input');
-  document.getElementById('search-restaurants').dispatchEvent(event);
-  document.querySelector('.filter-btn[data-filter="all"]')?.click();
-}
 </script>
 {% endblock %}
