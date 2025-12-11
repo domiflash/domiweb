@@ -294,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
     restaurantCards.forEach(card => {
       const category = card.dataset.category || '';
       const name = card.dataset.name || '';
+      const restaurantId = card.dataset.restaurantId;
       
       // Filtro de búsqueda
       const matchesSearch = currentSearch === '' || 
@@ -307,12 +308,18 @@ document.addEventListener('DOMContentLoaded', function() {
         );
       }
       
-      // Mostrar u ocultar card
+      // Mostrar u ocultar card y su panel de productos
       if (matchesSearch && matchesCategory) {
         card.style.display = '';
         visibleCount++;
       } else {
         card.style.display = 'none';
+        // Ocultar también el panel de productos si existe
+        const productosPanel = document.getElementById('productos-' + restaurantId);
+        if (productosPanel) {
+          productosPanel.style.display = 'none';
+          productosPanel.classList.add('hidden');
+        }
       }
     });
     
