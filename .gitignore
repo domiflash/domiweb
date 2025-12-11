@@ -36,6 +36,7 @@ log/
 
 # Documentos y reportes (archivos temporales de desarrollo)
 docs/reportes/
+docs/historico/
 temp/
 *.tmp
 *.temp
