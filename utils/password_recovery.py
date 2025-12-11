@@ -77,7 +77,7 @@ class PasswordRecoveryManager:
             user_name = user_result['nomusu']
             
             # Limpiar tokens expirados antes de verificar
-            cursor.execute("DELETE FROM tokens_recuperacion WHERE fecha_expiracion < NOW()")
+            cursor.execute("DELETE FROM tokens_recuperacion WHERE fecha_expiracion < CURRENT_TIMESTAMP")
             
             # Verificar tokens activos para este usuario
             cursor.execute("""
@@ -112,7 +112,7 @@ class PasswordRecoveryManager:
             cursor.execute("""
                 INSERT INTO tokens_recuperacion 
                 (email, token, fecha_creacion, fecha_expiracion, usado, ip_solicitud, user_agent)
-                VALUES (%s, %s, NOW(), %s, FALSE, %s, %s)
+                VALUES (%s, %s, CURRENT_TIMESTAMP, %s, FALSE, %s, %s)
             """, (email, token, expires_at, ip_address, user_agent))
             
             conn.commit()

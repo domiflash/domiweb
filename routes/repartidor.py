@@ -57,7 +57,7 @@ def dashboard():
     # Pedidos de hoy
     cursor.execute("""
         SELECT COUNT(*) as hoy
-        FROM pedidos WHERE idrep = %s AND DATE(fecha_creacion) = CURDATE()
+        FROM pedidos WHERE idrep = %s AND DATE(fecha_creacion) = CURRENT_DATE
     """, (idrep,))
     stats['hoy'] = cursor.fetchone()['hoy']
     
