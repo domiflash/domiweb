@@ -133,7 +133,8 @@ def delete_category(id):
         else:
             # Verificar si hay productos usando esta categoría
             cursor.execute("SELECT COUNT(*) FROM productos WHERE idcat = %s", (id,))
-            count = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            count = result[0] if result else 0
             
             if count > 0:
                 flash(f'No se puede eliminar la categoría "{category[0]}" porque tiene {count} producto(s) asociado(s)', "danger")
@@ -143,7 +144,7 @@ def delete_category(id):
                 flash(f'Categoría "{category[0]}" eliminada correctamente', "success")
     except Exception as e:
         db.rollback()
-        flash("Error al eliminar categoría: " + str(e), "danger")
+        flash(f"Error al eliminar categoría: {str(e)}", "danger")
     finally:
         cursor.close()
     
