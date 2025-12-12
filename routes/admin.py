@@ -116,3 +116,36 @@ def add_category():
         cursor.close()
 
     return redirect(url_for("admin.list_categories"))
+
+@admin_bp.route("/categories/delete/<int:id>", methods=["POST"])
+@role_required("administrador")
+def delete_category(id):
+    db = current_app.get_db()
+    cursor = db.cursor()
+    
+    try:
+        # Verificar si la categoría existe
+        cursor.execute("SELECT tipcat FROM categorias WHERE idcat = %s", (id,))
+        category = cursor.fetchone()
+        
+        if not category:
+            flash("La categoría no existe", "danger")
+        else:
+            # Verificar si hay productos usando esta categoría
+            cursor.execute("SELECT COUNT(*) FROM productos WHERE idcat = %s", (id,))
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                flash(f'No se puede eliminar la categoría "{category[0]}" porque tiene {count} producto(s) asociado(s)', "danger")
+            else:
+                cursor.execute("DELETE FROM categorias WHERE idcat = %s", (id,))
+                db.commit()
+                flash(f'Categoría "{category[0]}" eliminada correctamente', "success")
+    except Exception as e:
+        db.rollback()
+        flash("Error al eliminar categoría: " + str(e), "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for("admin.list_categories"))
+

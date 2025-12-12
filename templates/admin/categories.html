@@ -12,6 +12,7 @@
             <tr>
                 <th class="px-4 py-2 text-white">ID</th>
                 <th class="px-4 py-2 text-white">Categoría</th>
+                <th class="px-4 py-2 text-white">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -19,6 +20,15 @@
         <tr class="odd:bg-gray-50 odd:dark:bg-gray-800 even:bg-white even:dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
             <td class="dark-border px-4 py-2 text-center dark-text">{{ category.idcat }}</td>
             <td class="dark-border px-4 py-2 dark-text">{{ category.tipcat }}</td>
+            <td class="dark-border px-4 py-2 text-center">
+                <form action="{{ url_for('admin.delete_category', id=category.idcat) }}" method="post" class="inline delete-form">
+                    <button type="submit" 
+                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                            onclick="return confirm('¿Estás seguro de eliminar la categoría &quot;{{ category.tipcat }}&quot;? Esta acción no se puede deshacer.')">
+                        🗑️ Eliminar
+                    </button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
         </tbody>

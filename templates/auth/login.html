@@ -179,6 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const toggleButton = document.getElementById('toggle-password');
@@ -196,14 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Cambiar el título del tooltip
             toggleButton.title = isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña';
-            
-            // Opcional: Mostrar toast de feedback
-            if (window.domiUI) {
-                window.domiUI.showToast(
-                    isPassword ? 'Contraseña visible' : 'Contraseña oculta', 
-                    'info'
-                );
-            }
             
             // Mantener el foco en el input
             passwordInput.focus();
