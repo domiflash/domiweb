@@ -132,12 +132,12 @@ def delete_category(id):
             flash("La categoría no existe", "danger")
             return redirect(url_for("admin.list_categories"))
         
-        category_name = category[0]
+        category_name = category['tipcat']  # Usar clave de diccionario
         
         # Verificar si hay productos usando esta categoría
-        cursor.execute("SELECT COUNT(*) FROM productos WHERE idcat = %s", (id,))
+        cursor.execute("SELECT COUNT(*) as total FROM productos WHERE idcat = %s", (id,))
         count_result = cursor.fetchone()
-        product_count = int(count_result[0]) if count_result and count_result[0] is not None else 0
+        product_count = int(count_result['total']) if count_result and count_result.get('total') is not None else 0
         
         if product_count > 0:
             flash(f'No se puede eliminar la categoría "{category_name}" porque tiene {product_count} producto(s) asociado(s)', "danger")
