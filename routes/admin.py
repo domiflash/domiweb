@@ -130,20 +130,29 @@ def delete_category(id):
         
         if not category:
             flash("La categoría no existe", "danger")
-        else:
-            # Verificar si hay productos usando esta categoría
-            cursor.execute("SELECT COUNT(*) FROM productos WHERE idcat = %s", (id,))
-            result = cursor.fetchone()
-            count = result[0] if result else 0
-            
-            if count > 0:
-                flash(f'No se puede eliminar la categoría "{category[0]}" porque tiene {count} producto(s) asociado(s)', "danger")
-            else:
-                cursor.execute("DELETE FROM categorias WHERE idcat = %s", (id,))
-                db.commit()
-                flash(f'Categoría "{category[0]}" eliminada correctamente', "success")
+            return redirect(url_for("admin.list_categories"))
+        
+        category_name = category[0]
+        
+        # Verificar si hay productos usando esta categoría
+        cursor.execute("SELECT COUNT(*) FROM productos WHERE idcat = %s", (id,))
+        count_result = cursor.fetchone()
+        product_count = int(count_result[0]) if count_result and count_result[0] is not None else 0
+        
+        if product_count > 0:
+            flash(f'No se puede eliminar la categoría "{category_name}" porque tiene {product_count} producto(s) asociado(s)', "danger")
+            return redirect(url_for("admin.list_categories"))
+        
+        # Eliminar la categoría
+        cursor.execute("DELETE FROM categorias WHERE idcat = %s", (id,))
+        db.commit()
+        flash(f'Categoría "{category_name}" eliminada correctamente', "success")
+        
     except Exception as e:
         db.rollback()
+        import traceback
+        error_msg = f"Error: {str(e)} - Traceback: {traceback.format_exc()}"
+        print(error_msg)  # Log en consola
         flash(f"Error al eliminar categoría: {str(e)}", "danger")
     finally:
         cursor.close()
